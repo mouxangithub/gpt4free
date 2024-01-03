@@ -134,13 +134,9 @@ class Api:
         except Exception as e:
             logging.exception(e)
             return self.responseJson({
-                "error": {
-                    "message":
-                    "An error occurred while generating the response.",
-                    "type": "invalid_request_error",
-                    "param": "null",
-                    "code": "null",
-                }
+                "error": {"message": f"An error occurred while generating the response:\n{e}"},
+                "model": model,
+                "provider": g4f.get_last_provider(True)
             }, status=500)
 
         completion_id = ''.join(random.choices(
@@ -153,6 +149,7 @@ class Api:
                 'object': 'chat.completion',
                 'created': completion_timestamp,
                 'model': model,
+                'provider': g4f.get_last_provider(True),
                 'choices': [
                     {
                         'index': 0,
@@ -183,6 +180,7 @@ class Api:
                         'object': 'chat.completion.chunk',
                         'created': completion_timestamp,
                         'model': model,
+                        'provider': g4f.get_last_provider(True),
                         'choices': [
                             {
                                 'index': 0,
@@ -193,10 +191,7 @@ class Api:
                             }
                         ],
                     }
-
-                    content = json.dumps(
-                        completion_data, separators=(',', ':'))
-                    yield f'data: {content}\n\n'
+                    yield f'data: {json.dumps(completion_data)}\n\n'
                     time.sleep(0.03)
 
                 end_completion_data = {
@@ -204,6 +199,7 @@ class Api:
                     'object': 'chat.completion.chunk',
                     'created': completion_timestamp,
                     'model': model,
+                    'provider': g4f.get_last_provider(True),
                     'choices': [
                         {
                             'index': 0,
@@ -212,13 +208,18 @@ class Api:
                         }
                     ],
                 }
-
-                content = json.dumps(end_completion_data, separators=(
-                    ',', ':'))
-                yield f'data: {content}\n\n'
+                yield f'data: {json.dumps(end_completion_data)}\n\n'
 
             except GeneratorExit:
                 pass
+            except Exception as e:
+                logging.exception(e)
+                content = json.dumps({
+                    "error": {"message": f"An error occurred while generating the response:\n{e}"},
+                    "model": model,
+                    "provider": g4f.get_last_provider(True),
+                })
+                yield f'data: {content}'
 
         return Response(
             streaming(),
@@ -226,46 +227,7 @@ class Api:
         )
 
     async def v1_completions(self):
-        if request.method == 'GET':
-            return self.responseJson({
-                "error": {
-                    "message":
-                    "You must use POST to access this endpoint.",
-                    "type": "invalid_request_error",
-                    "param": "null",
-                    "code": "null",
-                }
-            })
-        item = request.get_json()
-        item_data = {
-            'model': 'text-davinci-003'
-        }
-        item_data.update({
-            key.decode('utf-8')
-            if isinstance(key, bytes) else key: str(value)
-            for key, value in (item or {}).items()
-        })
-        model = item_data.get('model')
-        prompt = item_data.get('prompt')
-        try:
-            response = g4f.Completion.create(
-                model=model,
-                prompt=prompt,
-                proxy=self.env.get('proxy', None),
-                socks5=self.env.get('socks5', None),
-                time=self.env.get('timeout', 120))
-            return self.responseJson(response)
-        except Exception as e:
-            logging.exception(e)
-            return self.responseJson({
-                "error": {
-                    "message":
-                    "An error occurred while generating the response.",
-                    "type": "invalid_request_error",
-                    "param": "null",
-                    "code": "null",
-                }
-            }, status=500)
+        return self.responseJson({'info': 'Not working yet.'})
 
     def responseJson(self, response,
                      content_type="application/json", status=200):

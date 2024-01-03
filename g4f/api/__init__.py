@@ -7,15 +7,15 @@ import string
 import uvicorn
 import nest_asyncio
 
-from fastapi           import FastAPI, Response, Request
+from fastapi import FastAPI, Response, Request
 from fastapi.responses import StreamingResponse
-from typing            import List, Union, Any, Dict, AnyStr
-#from ._tokenizer       import tokenize
+from typing import List, Union, Any, Dict, AnyStr
 
 import g4f
 from .. import debug
 
 debug.logging = True
+
 
 class Api:
     def __init__(self, engine: g4f, debug: bool = True, sentry: bool = False,
@@ -46,10 +46,10 @@ class Api:
             for model in g4f.Model.__all__():
                 model_info = (g4f.ModelUtils.convert[model])
                 model_list.append({
-                'id': model,
-                'object': 'model',
-                'created': 0,
-                'owned_by': model_info.base_provider}
+                    'id': model,
+                    'object': 'model',
+                    'created': 0,
+                    'owned_by': model_info.base_provider}
                 )
             return Response(content=json.dumps({
                 'object': 'list',
@@ -66,7 +66,7 @@ class Api:
                     'created': 0,
                     'owned_by': model_info.base_provider
                 }, indent=4), media_type="application/json")
-            except:
+            except KeyError:
                 return Response(content=json.dumps({"error": "The model does not exist."}, indent=4), media_type="application/json")
 
         @self.app.post("/v1/chat/completions")
@@ -83,12 +83,14 @@ class Api:
             })
             # messages is str, need dict
             if isinstance(item_data.get('messages'), str):
-                item_data['messages'] = ast.literal_eval(item_data.get('messages'))
+                item_data['messages'] = ast.literal_eval(
+                    item_data.get('messages'))
 
             model = item_data.get('model')
             stream = True if item_data.get("stream") == "True" else False
             messages = item_data.get('messages')
-            provider = item_data.get('provider', '').replace('g4f.Provider.', '')
+            provider = item_data.get(
+                'provider', '').replace('g4f.Provider.', '')
             provider = provider if provider and provider != "Auto" else None
 
             try:
@@ -96,7 +98,7 @@ class Api:
                     model=model,
                     stream=stream,
                     messages=messages,
-                    provider = provider,
+                    provider=provider,
                     ignored=self.list_ignored_providers
                 )
             except Exception as e:
@@ -107,12 +109,13 @@ class Api:
                     "provider": g4f.get_last_provider(True)
                 })
                 return Response(content=content, status_code=500, media_type="application/json")
-            completion_id = ''.join(random.choices(string.ascii_letters + string.digits, k=28))
+            completion_id = ''.join(random.choices(
+                string.ascii_letters + string.digits, k=28))
             completion_timestamp = int(time.time())
 
             if not stream:
-                #prompt_tokens, _ = tokenize(''.join([message['content'] for message in messages]))
-                #completion_tokens, _ = tokenize(response)
+                # prompt_tokens, _ = tokenize(''.join([message['content'] for message in messages]))
+                # completion_tokens, _ = tokenize(response)
 
                 json_data = {
                     'id': f'chatcmpl-{completion_id}',
@@ -131,9 +134,9 @@ class Api:
                         }
                     ],
                     'usage': {
-                        'prompt_tokens': 0, #prompt_tokens,
-                        'completion_tokens': 0, #completion_tokens,
-                        'total_tokens': 0, #prompt_tokens + completion_tokens,
+                        'prompt_tokens': 0,  # prompt_tokens,
+                        'completion_tokens': 0,  # completion_tokens,
+                        'total_tokens': 0,  # prompt_tokens + completion_tokens,
                     },
                 }
 
