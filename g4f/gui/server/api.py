@@ -8,7 +8,7 @@ import time
 
 from flask import request, Response
 from typing import List
-from .. import debug
+from ... import debug
 
 debug.logging = True
 

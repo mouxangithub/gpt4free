@@ -4,15 +4,14 @@ from .server.app import app
 from .server.api import Api
 from .server.website import Website
 from .server.backend import Backend_Api
-from typing import List, Union
-from .. import BaseProvider
+from typing import List
 
 
 def run_gui(host: str = '0.0.0.0',
             port: int = 80,
             debug: bool = False,
             apiStatus: bool = False,
-            list_ignored_providers: List[Union[str, BaseProvider]] = None
+            list_ignored_providers: List[str] = None
             ) -> None:
     config = {
         'host': host,
