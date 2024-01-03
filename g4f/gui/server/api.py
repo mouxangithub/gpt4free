@@ -7,21 +7,22 @@ import string
 import time
 
 from flask import request, Response
-from typing import List, Union
-from ... import BaseProvider
+from typing import List
+from .. import debug
 
-g4f.logging = True
+debug.logging = True
 
 
 class Api:
     def __init__(self,
                  app,
                  env,
-                 list_ignored_providers: List[Union[str, BaseProvider]] = None
+                 list_ignored_providers: List[str] = None
                  ) -> None:
         self.app = app
         self.env = env
         self.list_ignored_providers = list_ignored_providers
+
         self.routes = {
             '/v1': {
                 'function': self.v1,
