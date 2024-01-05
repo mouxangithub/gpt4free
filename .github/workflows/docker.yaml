@@ -1,6 +1,8 @@
 name: Publish Docker image
 
 on:
+  release:
+    types: [published]
   push:
     tags:
       - "**"
@@ -15,9 +17,6 @@ jobs:
       
       - name: Print release tag
         run: echo "The release tag is ${{ github.event.release.tag_name }}"
-      
-      - name: Print release tags
-        run: echo "The release tag is ${{ github.event.tags }}"
 
       - name: Get metadata for Docker
         id: metadata
