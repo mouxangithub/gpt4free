@@ -16,9 +16,6 @@ jobs:
       - name: Git describe
         id: ghd
         uses: proudust/gh-describe@v1
-      - name: Check outputs
-        run: |
-          echo "最新的版本号: ${{ steps.ghd.outputs.tag }}"
 
       - name: Get metadata for Docker
         id: metadata
