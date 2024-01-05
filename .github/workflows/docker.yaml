@@ -3,7 +3,7 @@ name: Publish Docker image
 on:
   push:
     tags:
-      - '**'
+      - "**"
     branches: ["main"]
 
 jobs:
@@ -12,6 +12,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
 
       - name: Get metadata for Docker
         id: metadata
@@ -22,7 +26,7 @@ jobs:
             ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=latest
-            type=ref,event=tag
+            type=raw,value=${{ steps.get_version.outputs.VERSION }}
 
       - name: Log in to Docker Hub
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
@@ -46,4 +50,4 @@ jobs:
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           build-args: |
-            G4F_VERSION=${{ steps.metadata.outputs.VERSION }}
+            G4F_VERSION=${{ steps.get_version.outputs.VERSION }}
