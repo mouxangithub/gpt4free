@@ -13,6 +13,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
+      - name: Fetch all tags
+        run: git fetch --tags
+      
       - name: Set version
         run: echo "G4F_VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
       
