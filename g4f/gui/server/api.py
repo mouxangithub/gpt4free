@@ -5,6 +5,7 @@ import logging
 import random
 import string
 import time
+import nest_asyncio
 
 from flask import request, Response
 from typing import List
@@ -22,6 +23,8 @@ class Api:
         self.app = app
         self.env = env
         self.list_ignored_providers = list_ignored_providers
+
+        nest_asyncio.apply()
 
         self.routes = {
             '/v1': {
@@ -135,7 +138,10 @@ class Api:
         except Exception as e:
             logging.exception(e)
             return self.responseJson({
-                "error": {"message": f"An error occurred while generating the response:\n{e}"},
+                "error": {
+                    "message":
+                    f"An error occurred while generating the response:\n{e}"
+                },
                 "model": model,
                 "provider": g4f.get_last_provider(True)
             }, status=500)
@@ -216,7 +222,9 @@ class Api:
             except Exception as e:
                 logging.exception(e)
                 content = json.dumps({
-                    "error": {"message": f"An error occurred while generating the response:\n{e}"},
+                    "error": {
+                        "message": f"An error occurred while generating the response:\n{e}"
+                    },
                     "model": model,
                     "provider": g4f.get_last_provider(True),
                 })
