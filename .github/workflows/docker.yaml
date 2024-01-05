@@ -13,8 +13,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Print the version
-        run: echo "The version is ${{ github.ref }}"
+      - name: Print release tag
+        run: echo "The release tag is ${{ github.event.release.tag_name }}"
+      
+      - name: Print release tags
+        run: echo "The release tag is ${{ github.event.tags }}"
 
       - name: Get metadata for Docker
         id: metadata
@@ -24,7 +27,6 @@ jobs:
             mouxan/g4f
             ghcr.io/${{ github.repository }}
           tags: |
-            type=raw,value=${{ github.ref }}
             type=raw,value=latest
             type=ref,event=tag
 
