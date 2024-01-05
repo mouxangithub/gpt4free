@@ -16,6 +16,8 @@ jobs:
       - name: Git describe
         id: ghd
         uses: proudust/gh-describe@v1
+        with:
+          repo: "https://github.com/xtekky/gpt4free"
 
       - name: Get metadata for Docker
         id: metadata
