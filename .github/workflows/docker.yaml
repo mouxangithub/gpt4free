@@ -13,17 +13,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Increment version from repository's tags
-        id: tages_versioning
-        uses: georgeneto/tags-versioning
-        with:
-          repo-token: ${{secrets.GITHUB_TOKEN}}
-        
-      - name: last
-        run: echo "${{ steps.tages_versioning.outputs.last }}"
-        
-      - name: next
-        run: echo "${{ steps.tages_versioning.outputs.next }}"
+      - name: Git describe
+        id: ghd
+        uses: proudust/gh-describe@v1
+      - name: Check outputs
+        run: |
+          echo "describe  : ${{ steps.ghd.outputs.describe }}"
+          echo "tag       : ${{ steps.ghd.outputs.tag }}"
+          echo "distance  : ${{ steps.ghd.outputs.distance }}"
 
       - name: Get metadata for Docker
         id: metadata
