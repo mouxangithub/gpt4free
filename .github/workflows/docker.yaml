@@ -23,7 +23,7 @@ jobs:
         with:
           images: |
             mouxan/g4f
-            ghcr.io/g4f
+            ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=latest
             type=ref,event=tag
