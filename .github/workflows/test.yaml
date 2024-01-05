@@ -1,0 +1,25 @@
+name: Publish Docker image
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Git describe
+        id: ghd
+        uses: proudust/gh-describe@v1
+        with:
+          repo: "https://github.com/xtekky/gpt4free"
+      
+      - name: Check outputs
+        run: |
+          echo "describe: ${{ steps.ghd.outputs.describe }}"
+          echo "tag     : ${{ steps.ghd.outputs.tag }}"
+          echo "distance: ${{ steps.ghd.outputs.distance }}"
+          echo "sha     : ${{ steps.ghd.outputs.sha }}"
