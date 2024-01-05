@@ -2,8 +2,6 @@ name: Publish Docker image
 
 on:
   push:
-    tags:
-      - "**"
     branches: ["main"]
 
 jobs:
@@ -27,8 +25,8 @@ jobs:
             mouxan/g4f
             ghcr.io/${{ github.repository }}
           tags: |
+            type=raw,value=${{ steps.ghd.outputs.tag }}
             type=raw,value=latest
-            type=ref,event=tag
 
       - name: Log in to Docker Hub
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
