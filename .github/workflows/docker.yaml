@@ -10,12 +10,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Git describe
         id: ghd
         uses: proudust/gh-describe@v1
         with:
           repo: "https://github.com/xtekky/gpt4free"
+
+      - name: Print version
+        run: |
+          echo "当前最新版本号: ${{ steps.ghd.outputs.tag }}"
 
       - name: Get metadata for Docker
         id: metadata
