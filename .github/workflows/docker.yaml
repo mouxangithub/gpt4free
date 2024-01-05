@@ -13,14 +13,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: git test tags
-        run: git describe --tags --abbrev=0
-      
       - name: Fetch all tags
         run: git fetch --tags
       
       - name: Set version
-        run: echo "G4F_VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+        run: echo "VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
       
       - name: Print the version
         run: echo "The version is ${{ env.VERSION }}"
@@ -58,4 +55,4 @@ jobs:
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           build-args: |
-            G4F_VERSION=${{ env.G4F_VERSION }}
+            G4F_VERSION=${{ env.VERSION }}
