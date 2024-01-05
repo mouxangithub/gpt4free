@@ -15,6 +15,9 @@ jobs:
       
       - name: Set version
         run: echo "G4F_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      
+      - name: Print the version
+        run: echo "The version is ${{ env.VERSION }}"
 
       - name: Get metadata for Docker
         id: metadata
