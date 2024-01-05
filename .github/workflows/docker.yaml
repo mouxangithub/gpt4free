@@ -1,8 +1,6 @@
 name: Publish Docker image
 
 on:
-  release:
-    types: [published]
   push:
     tags:
       - "**"
@@ -15,8 +13,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Print release tag
-        run: echo "The release tag is ${{ github.event.release.tag_name }}"
+      - name: Analyze Tags
+        id: analyze_tags
+        uses: Dotunj/github-action-analyze-tags@v0.2.0
+      
+      - name: current_tag
+        run: echo "${{ steps.analyze_tags.outputs.current_tag }}"
+      
+      - name: highest_tag
+        run: echo "${{ steps.analyze_tags.outputs.highest_tag }}"
 
       - name: Get metadata for Docker
         id: metadata
