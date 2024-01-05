@@ -13,14 +13,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Fetch all tags
-        run: git fetch --tags
-      
-      - name: Set version
-        run: echo "VERSION=$(git describe --tags --abbrev=0 --always)" >> $GITHUB_ENV
-      
       - name: Print the version
-        run: echo "The version is ${{ env.VERSION }}"
+        run: echo "The version is ${{ github.ref }}"
 
       - name: Get metadata for Docker
         id: metadata
@@ -30,7 +24,7 @@ jobs:
             mouxan/g4f
             ghcr.io/${{ github.repository }}
           tags: |
-            type=raw,value=${{ env.G4F_VERSION }}
+            type=raw,value=${{ github.ref }}
             type=raw,value=latest
             type=ref,event=tag
 
@@ -56,4 +50,4 @@ jobs:
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           build-args: |
-            G4F_VERSION=${{ env.VERSION }}
+            G4F_VERSION=${{ github.ref }}
