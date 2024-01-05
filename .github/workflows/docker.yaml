@@ -13,15 +13,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Analyze Tags
-        id: analyze_tags
-        uses: Dotunj/github-action-analyze-tags@v0.2.0
+      - name: Increment version from repository's tags
+        id: tages_versioning
+        uses: georgeneto/tags-versioning
+        with:
+          repo-token: ${{secrets.GITHUB_TOKEN}}
       
-      - name: current_tag
-        run: echo "${{ steps.analyze_tags.outputs.current_tag }}"
+      - name: last
+        run: echo "${{ steps.tages_versioning.outputs.last }}"
       
-      - name: highest_tag
-        run: echo "${{ steps.analyze_tags.outputs.highest_tag }}"
+      - name: next
+        run: echo "${{ steps.tages_versioning.outputs.next }}"
 
       - name: Get metadata for Docker
         id: metadata
