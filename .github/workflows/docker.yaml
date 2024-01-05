@@ -18,9 +18,7 @@ jobs:
         uses: proudust/gh-describe@v1
       - name: Check outputs
         run: |
-          echo "describe  : ${{ steps.ghd.outputs.describe }}"
-          echo "tag       : ${{ steps.ghd.outputs.tag }}"
-          echo "distance  : ${{ steps.ghd.outputs.distance }}"
+          echo "最新的版本号: ${{ steps.ghd.outputs.tag }}"
 
       - name: Get metadata for Docker
         id: metadata
@@ -55,4 +53,4 @@ jobs:
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           build-args: |
-            G4F_VERSION=${{ github.ref }}
+            G4F_VERSION=${{ steps.ghd.outputs.tag }}
