@@ -17,7 +17,7 @@ jobs:
         run: git fetch --tags
       
       - name: Set version
-        run: echo "VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+        run: echo "VERSION=$(git describe --tags --abbrev=0 --always)" >> $GITHUB_ENV
       
       - name: Print the version
         run: echo "The version is ${{ env.VERSION }}"
@@ -32,6 +32,7 @@ jobs:
           tags: |
             type=raw,value=${{ env.G4F_VERSION }}
             type=raw,value=latest
+            type=ref,event=tag
 
       - name: Log in to Docker Hub
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
