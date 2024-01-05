@@ -46,4 +46,4 @@ jobs:
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           build-args: |
-            G4F_VERSION=${{ github.ref_name }}
+            G4F_VERSION=${{ steps.metadata.outputs.VERSION }}
