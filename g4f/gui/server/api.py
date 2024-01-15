@@ -122,8 +122,6 @@ class Api:
         messages = item_data.get('messages')
         provider = item_data.get('provider', '').replace('g4f.Provider.', '')
         provider = provider if provider and provider != "Auto" else None
-        # conversation = item_data.get('conversation') if item_data.get(
-        #     'conversation') is not None else None
 
         try:
             response = g4f.ChatCompletion.create(
