@@ -11,6 +11,11 @@ from flask import request, Response
 from typing import List
 from ... import debug
 
+from g4f.image import is_allowed_extension, to_image
+from g4f.Provider import __providers__
+from g4f.Provider.bing.create_images import patch_provider
+from .internet import get_search_message
+
 debug.logging = True
 
 
@@ -29,6 +34,14 @@ class Api:
         self.routes = {
             '/v1': {
                 'function': self.v1,
+                'methods': ['GET', 'POST']
+            },
+            '/v1/providers': {
+                'function': self.v1_providers,
+                'methods': ['GET', 'POST']
+            },
+            '/v1/providers/<provider_name>': {
+                'function': self.v1_providers_info,
                 'methods': ['GET', 'POST']
             },
             '/v1/models': {
@@ -92,6 +105,46 @@ class Api:
                 }
             }, status=500)
 
+    def v1_providers(self):
+        provider_list = []
+        for provider in __providers__:
+            provider_list.append({
+                'id': provider.__name__,
+                'object': 'provider',
+                'url': provider.url,
+                'working': provider.working,
+                'supports_message_history': provider.supports_message_history,
+                'supports_gpt_4': provider.supports_gpt_4,
+                'supports_gpt_35_turbo': provider.supports_gpt_35_turbo,
+                'supports_stream': provider.supports_stream,
+            })
+        return self.responseJson({
+            'object': 'list',
+            'data': provider_list})
+    
+    def v1_providers_info(self, provider_name: str):
+        try:
+            provider = (g4f.ProviderUtils.convert[provider_name])
+            return self.responseJson({
+                'id': provider.__name__,
+                'object': 'provider',
+                'url': provider.url,
+                'working': provider.working,
+                'supports_message_history': provider.supports_message_history,
+                'supports_gpt_4': provider.supports_gpt_4,
+                'supports_gpt_35_turbo': provider.supports_gpt_35_turbo,
+                'supports_stream': provider.supports_stream,
+            })
+        except Exception:
+            return self.responseJson({
+                "error": {
+                    "message": "The provider does not exist.",
+                    "type": "invalid_request_error",
+                    "param": "null",
+                    "code": "null",
+                }
+            }, status=500)
+
     async def v1_chat_completions(self):
         if request.method == 'GET':
             return self.responseJson({
@@ -103,6 +156,7 @@ class Api:
                     "code": "null",
                 }
             }, status=501)
+        kwargs = {}
         item = request.get_json()
         item_data = {
             'model': 'gpt-3.5-turbo',
@@ -117,11 +171,30 @@ class Api:
             item_data['messages'] = ast.literal_eval(
                 item_data.get('messages'))
 
+        if 'image' in request.files:
+            file = request.files['image']
+            if file.filename != '' and is_allowed_extension(file.filename):
+                kwargs['image'] = to_image(file.stream)
+
+        if item_data.get('image'):
+            kwargs['image'] = to_image(item_data.get('image'))
+
         model = item_data.get('model')
         stream = True if item_data.get("stream") == "True" else False
         messages = item_data.get('messages')
-        provider = item_data.get('provider', '').replace('g4f.Provider.', '')
+        envprovider = self.env.get('provider') if self.env.get(
+            'provider') else item_data.get('provider', '')
+        provider = envprovider.replace('g4f.Provider.', '')
         provider = provider if provider and provider != "Auto" else None
+        if provider == 'OpenaiChat':
+            kwargs['auto_continue'] = True
+        if item_data.get('web_search') or self.env.get('web_search'):
+            if provider == "Bing":
+                kwargs['web_search'] = True
+            else:
+                messages[-1]["content"] = get_search_message(
+                    messages[-1]["content"])
+        patch = patch_provider if item_data.get('patch_provider') else None
 
         try:
             response = g4f.ChatCompletion.create(
@@ -132,7 +205,10 @@ class Api:
                 proxy=self.env.get('proxy', None),
                 socks5=self.env.get('socks5', None),
                 time=self.env.get('timeout', 120),
-                ignored=self.list_ignored_providers)
+                patch_provider=patch,
+                ignored=self.list_ignored_providers,
+                **kwargs
+            )
         except Exception as e:
             logging.exception(e)
             return self.responseJson({
@@ -196,8 +272,7 @@ class Api:
                             }
                         ],
                     }
-                    yield f'data: {json.dumps(completion_data)}\n\n'
-                    time.sleep(0.03)
+                    yield f'data: {json.dumps(completion_data)}\n'
 
                 end_completion_data = {
                     'id': f'chatcmpl-{completion_id}',
@@ -213,7 +288,7 @@ class Api:
                         }
                     ],
                 }
-                yield f'data: {json.dumps(end_completion_data)}\n\n'
+                yield f'data: {json.dumps(end_completion_data)}\n'
 
             except GeneratorExit:
                 pass
