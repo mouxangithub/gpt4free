@@ -46,7 +46,7 @@ RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* \
   && apt-get -qyy clean
 
 # Update entrypoint
-COPY docker/supervisor.conf /etc/supervisor/conf.d/selenium.conf
+COPY docker/supervisor.conf /etc/supervisor/conf.d/selenium-all.conf
 
 # Change background image
 COPY docker/background.png /usr/share/images/fluxbox/ubuntu-light.png

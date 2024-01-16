@@ -11,7 +11,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Git version
+      - name: Git gpt4free latest version
         id: ghd
         uses: proudust/gh-describe@v1
         with:

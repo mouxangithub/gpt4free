@@ -3,6 +3,73 @@ Written by [@xtekky](https://github.com/hlohaus) & maintained by [@hlohaus](http
 
 <div id="top"></div>
 
+> [!Note]
+<sup><strong>Lastet version:</strong></sup> [![Docker version](https://img.shields.io/docker/v/mouxan/g4f?label=docker&color=blue)](https://hub.docker.com/r/mouxan/g4f)  
+>
+
+## 🛠️ 部署方法
+
+### 目前仅提供docker部署和git本地部署
+
+```sh
+docker pull mouxan/g4f
+```
+
+```sh
+version: '3'
+services:
+  gpt4free:
+    container_name: gpt4free
+    image: mouxan/g4f:latest
+    restart: always
+    shm_size: 2gb
+    ports:
+      - 8080:80
+```
+
+## 💡 使用方法
+
+### Gui访问
+
+```sh
+http://127.0.0.1/chat/
+```
+
+### Api请求
+
+- completions接口
+
+```shell
+curl --location 'http://127.0.0.1/v1/chat/completions' \
+--header 'Content-Type: application/json' \
+--data '{
+  "web_search": true,
+  "provider": "Bing",
+  "model": "gpt-4",
+  "messages": [{"role": "user", "content": "hi"}]
+}'
+# web_search为是否开启联网搜索，目前gpt4模型兼容性好一些，部分gpt3.5好像无法进行联网搜索
+# provider API供应商名称，可请求查看下方/v1/providers查看有哪些供应商名称，可指定working为true的供应商，亦可直接环境变量设置，不传则默认随机请求，如果a供应商接口无法请求则会继续b供应商然后继续往下，但如果传了该参数则无法继续请求
+```
+
+- providers接口，查看供应商列表
+
+```shell
+curl --location 'http://127.0.0.1/v1/providers/<provider_name>'
+```
+
+- models接口，查看api支持的模型，以及模型所对应的供应商
+
+```shell
+curl --location 'http://127.0.0.1/v1/models/<model_name>'
+```
+
+
+<details>
+<summary>
+     官方原文档，尊重敬重各位大佬gpt4free的提供开源者，如有侵权行为，请联系我关闭下架，官方原文档我就合起来了，有需要看的自行咱开或者前往官方github：[`gpt4free`]('https://github.com/xtekky/gpt4free')浏览
+</summary>
+
 > By using this repository or any code related to it, you agree to the [legal notice](LEGAL_NOTICE.md). The author is not responsible for any copies, forks, re-uploads made by other users, or anything else related to GPT4Free. This is the author's only account and repository. To prevent impersonation or irresponsible actions, please comply with the GNU GPL license this Repository uses.
 
 > [!Note]
@@ -686,6 +753,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 <a href="https://github.com/xtekky/gpt4free/stargazers">
         <img width="500" alt="Star History Chart" src="https://api.star-history.com/svg?repos=xtekky/gpt4free&type=Date">
 </a>
+
+</details>
 
 ## 📄 License
 
