@@ -1,5 +1,4 @@
 ![248433934-7886223b-c1d1-4260-82aa-da5741f303bb](https://github.com/xtekky/gpt4free/assets/98614666/ea012c87-76e0-496a-8ac4-e2de090cc6c9)
-Written by [@xtekky](https://github.com/hlohaus) & maintained by [@hlohaus](https://github.com/hlohaus)
 
 <div id="top"></div>
 
@@ -57,7 +56,7 @@ services:
 git clone https://github.com/mouxan/gpt4free.git
 cd gpt4free
 pip install -r requirements.txt
-python -m cli 
+python -m cli all
 ```
 
 ## 💡 使用方法
@@ -102,6 +101,12 @@ curl --location 'http://127.0.0.1/v1/models/<model_name>'
 <summary>
      官方原文档，尊重敬重各位大佬gpt4free的提供开源者，如有侵权行为，请联系我关闭下架，官方原文档我就合起来了，有需要看的自行咱开或者前往官方github：[gpt4free](https://github.com/xtekky/gpt4free) 浏览
 </summary>
+
+<div id="top"></div>
+
+Written by [@xtekky](https://github.com/hlohaus) & maintained by [@hlohaus](https://github.com/hlohaus)
+
+<div id="top"></div>
 
 > By using this repository or any code related to it, you agree to the [legal notice](LEGAL_NOTICE.md). The author is not responsible for any copies, forks, re-uploads made by other users, or anything else related to GPT4Free. This is the author's only account and repository. To prevent impersonation or irresponsible actions, please comply with the GNU GPL license this Repository uses.
 
