@@ -62,7 +62,7 @@ class Api:
             },
         }
 
-    async def v1(self):
+    def v1(self):
         return self.responseJson({
             "error": {
                 "message": "Go to /v1/chat/completions or /v1/models.",
@@ -72,7 +72,7 @@ class Api:
             }
         }, status=404)
 
-    async def v1_models(self):
+    def v1_models(self):
         model_list = []
         for model in g4f.Model.__all__():
             model_info = (g4f.ModelUtils.convert[model])
@@ -86,7 +86,7 @@ class Api:
             'object': 'list',
             'data': model_list})
 
-    async def v1_model_info(self, model_name: str):
+    def v1_model_info(self, model_name: str):
         try:
             model_info = (g4f.ModelUtils.convert[model_name])
             return self.responseJson({
@@ -145,7 +145,7 @@ class Api:
                 }
             }, status=500)
 
-    async def v1_chat_completions(self):
+    def v1_chat_completions(self):
         if request.method == 'GET':
             return self.responseJson({
                 "error": {
@@ -308,7 +308,7 @@ class Api:
             content_type='text/event-stream'
         )
 
-    async def v1_completions(self):
+    def v1_completions(self):
         return self.responseJson({'info': 'Not working yet.'})
 
     def responseJson(self, response,
