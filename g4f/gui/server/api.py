@@ -194,6 +194,8 @@ class Api:
                 messages[-1]["content"] = get_search_message(
                     messages[-1]["content"])
         patch = patch_provider if item_data.get('patch_provider') else None
+        auth = item_data.get('auth')
+        ignore_stream_and_auth = item_data.get('ignore_stream_and_auth', True)
 
         try:
             response = g4f.ChatCompletion.create(
@@ -205,6 +207,8 @@ class Api:
                 socks5=self.env.get('socks5', None),
                 time=self.env.get('timeout', 120),
                 patch_provider=patch,
+                ignore_stream_and_auth=ignore_stream_and_auth,
+                auth=auth
                 ignored=self.list_ignored_providers,
                 **kwargs
             )
