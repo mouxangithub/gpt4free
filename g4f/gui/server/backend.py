@@ -23,7 +23,7 @@ class Backend_Api:
         app (Flask): A Flask application instance.
         routes (dict): A dictionary mapping API endpoints to their respective handlers.
     """
-    def __init__(self, app: Flask) -> None:
+    def __init__(self, app: Flask, env) -> None:
         """
         Initialize the backend API with the given Flask application.
 
@@ -31,6 +31,7 @@ class Backend_Api:
             app (Flask): Flask application instance to attach routes to.
         """
         self.app: Flask = app
+        self.env = env
         self.routes = {
             '/backend-api/v2/models': {
                 'function': self.get_models,
@@ -143,7 +144,7 @@ class Backend_Api:
             json_data = json.loads(request.form['json'])
         else:
             json_data = request.json
-            
+           
         provider = json_data.get('provider', '').replace('g4f.Provider.', '')
         provider = provider if provider and provider != "Auto" else None
         if provider == 'OpenaiChat':
@@ -159,6 +160,9 @@ class Backend_Api:
         patch = patch_provider if json_data.get('patch_provider') else None
 
         return {
+            "proxy": self.env.get('proxy', None),
+            "socks5": self.env.get('socks5', None),
+            "time": self.env.get('timeout', 120),
             "model": model,
             "provider": provider,
             "messages": messages,

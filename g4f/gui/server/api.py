@@ -159,8 +159,7 @@ class Api:
         kwargs = {}
         item = request.get_json()
         item_data = {
-            'model': 'gpt-3.5-turbo',
-            'stream': False,
+            'model': g4f.models.default,
         }
         item_data.update({
             key.decode('utf-8')

@@ -1,10 +1,13 @@
 version: '3'
-
 services:
   gpt4free:
     container_name: gpt4free
     image: mouxan/g4f:latest
     restart: always
-    shm_size: 2gb
+    environment:
+      PROXY: http://127.0.0.1:3333
+      TIMEOUT: 60
+      web_search: true
+      provider: 'Bing'
     ports:
       - 8080:80

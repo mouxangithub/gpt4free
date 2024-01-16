@@ -11,9 +11,20 @@ Written by [@xtekky](https://github.com/hlohaus) & maintained by [@hlohaus](http
 
 ### 目前仅提供docker部署和git本地部署
 
+- docker部署
+
 ```sh
 docker pull mouxan/g4f
+docker run -d --restart always --name gpt4free \
+            -p 8080:80 \
+            -e PROXY=http://127.0.0.1:3333 \
+            -e TIMEOUT=60 \
+            -e web_search=true \
+            -e provider='Bing' \
+            mouxan/g4f
 ```
+
+- docker-compose.yml
 
 ```sh
 version: '3'
@@ -22,9 +33,31 @@ services:
     container_name: gpt4free
     image: mouxan/g4f:latest
     restart: always
-    shm_size: 2gb
+    environment:
+      PROXY: http://127.0.0.1:3333
+      TIMEOUT: 60
+      web_search: true
+      provider: 'Bing'
     ports:
       - 8080:80
+```
+
+- 环境变量说明
+
+```sh
+# PROXY和SOCKS5为代理地址
+# TIMEOUT为请求接口超时时间，单位s
+# web_search是否开启联网搜索
+# provider Api接口供应商
+```
+
+- git本地部署
+
+```sh
+git clone https://github.com/mouxan/gpt4free.git
+cd gpt4free
+pip install -r requirements.txt
+python -m cli 
 ```
 
 ## 💡 使用方法
@@ -67,7 +100,7 @@ curl --location 'http://127.0.0.1/v1/models/<model_name>'
 
 <details>
 <summary>
-     官方原文档，尊重敬重各位大佬gpt4free的提供开源者，如有侵权行为，请联系我关闭下架，官方原文档我就合起来了，有需要看的自行咱开或者前往官方github：[gpt4free]('https://github.com/xtekky/gpt4free') 浏览
+     官方原文档，尊重敬重各位大佬gpt4free的提供开源者，如有侵权行为，请联系我关闭下架，官方原文档我就合起来了，有需要看的自行咱开或者前往官方github：[gpt4free](https://github.com/xtekky/gpt4free) 浏览
 </summary>
 
 > By using this repository or any code related to it, you agree to the [legal notice](LEGAL_NOTICE.md). The author is not responsible for any copies, forks, re-uploads made by other users, or anything else related to GPT4Free. This is the author's only account and repository. To prevent impersonation or irresponsible actions, please comply with the GNU GPL license this Repository uses.

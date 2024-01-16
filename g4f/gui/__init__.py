@@ -42,7 +42,7 @@ def run_gui(host: str = '0.0.0.0',
             methods=site.routes[route]['methods'],
         )
 
-    backend_api = Backend_Api(app)
+    backend_api = Backend_Api(app, env)
     for route in backend_api.routes:
         app.add_url_rule(
             route,
