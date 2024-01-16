@@ -208,7 +208,7 @@ class Api:
                 time=self.env.get('timeout', 120),
                 patch_provider=patch,
                 ignore_stream_and_auth=ignore_stream_and_auth,
-                auth=auth
+                auth=auth,
                 ignored=self.list_ignored_providers,
                 **kwargs
             )
