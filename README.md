@@ -8,6 +8,12 @@
 
 ## 🛠️ 部署方法
 
+### Railway部署
+
+- [注册Railway](https://railway.app?referralCode=bbE8bz)
+
+- [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/zIYnPJ?referralCode=bbE8bz)
+
 ### 目前仅提供docker部署和git本地部署
 
 - docker部署
