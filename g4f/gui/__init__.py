@@ -22,7 +22,7 @@ def run_gui(host: str = '0.0.0.0',
     proxy = os.environ.get('PROXY', None)
     socks5 = os.environ.get('SOCKS5', None)
     timeout = os.environ.get('TIMEOUT', 120)
-    env['web_search'] = os.environ.get('web_search', True)
+    env['web_search'] = os.environ.get('web_search')
     env['provider'] = os.environ.get('provider')
     if proxy:
         print(f'Proxy: {proxy}')

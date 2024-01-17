@@ -113,10 +113,11 @@ class Api:
                 'object': 'provider',
                 'url': provider.url,
                 'working': provider.working,
-                'supports_message_history': provider.supports_message_history,
+                'needs_auth': provider.needs_auth,
                 'supports_gpt_4': provider.supports_gpt_4,
                 'supports_gpt_35_turbo': provider.supports_gpt_35_turbo,
                 'supports_stream': provider.supports_stream,
+                'supports_message_history': provider.supports_message_history,
             })
         return self.responseJson({
             'object': 'list',
@@ -194,8 +195,9 @@ class Api:
                 messages[-1]["content"] = get_search_message(
                     messages[-1]["content"])
         patch = patch_provider if item_data.get('patch_provider') else None
-        auth = item_data.get('auth')
-        ignore_stream_and_auth = item_data.get('ignore_stream_and_auth', True)
+        auth = item_data.get('auth', None)
+        ignore_stream_and_auth = item_data.get('ignore_stream_and_auth', False)
+        ignore_working = item_data.get('ignore_working', False)
 
         try:
             response = g4f.ChatCompletion.create(
@@ -207,8 +209,9 @@ class Api:
                 socks5=self.env.get('socks5', None),
                 time=self.env.get('timeout', 120),
                 patch_provider=patch,
-                ignore_stream_and_auth=ignore_stream_and_auth,
                 auth=auth,
+                ignore_stream_and_auth=ignore_stream_and_auth,
+                ignore_working=ignore_working,
                 ignored=self.list_ignored_providers,
                 **kwargs
             )

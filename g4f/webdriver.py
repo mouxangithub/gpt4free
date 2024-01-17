@@ -142,7 +142,7 @@ class WebDriverSession:
         Returns:
             WebDriver: The reopened WebDriver instance.
         """
-        user_data_dir = user_data_data_dir or self.user_data_dir
+        user_data_dir = self.user_data_dir
         if self.default_driver:
             self.default_driver.quit()
         if not virtual_display and self.virtual_display:
