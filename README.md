@@ -25,6 +25,8 @@
 
 - 3.点击部署的服务，进入Settings->Networking->Generate Domain（生成随机域名）/Custom Domain（绑定自定义自己的域名），然后就可以通过这个域名进行原神启动！
 
+Tips: 如果你不是新用户，五刀用完了，别慌，点击右上角头像进入settings->General->拉到最下面Delete Account，对，这是注销解绑，然后再重新用github登录绑定，然后你会发现，又有五刀了
+
 ### docker部署
 
 ```sh
