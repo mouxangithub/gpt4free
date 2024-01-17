@@ -8,6 +8,15 @@
 
 ## 🛠️ 部署方法
 
+### 环境变量说明
+
+```sh
+# PROXY和SOCKS5为代理地址
+# TIMEOUT为请求接口超时时间，单位s
+# web_search是否开启联网搜索
+# provider Api接口供应商
+```
+
 ### Railway部署
 
 - 1.[注册Railway](https://railway.app?referralCode=bbE8bz)
@@ -16,9 +25,7 @@
 
 - 3.点击部署的服务，进入Settings->Networking->Generate Domain（生成随机域名）/Custom Domain（绑定自定义自己的域名），然后就可以通过这个域名进行原神启动！
 
-### 目前仅提供docker部署和git本地部署
-
-- docker部署
+### docker部署
 
 ```sh
 docker pull mouxan/g4f
@@ -31,7 +38,7 @@ docker run -d --restart always --name gpt4free \
             mouxan/g4f
 ```
 
-- docker-compose.yml
+### docker-compose.yml
 
 ```sh
 version: '3'
@@ -49,16 +56,7 @@ services:
       - 8080:80
 ```
 
-- 环境变量说明
-
-```sh
-# PROXY和SOCKS5为代理地址
-# TIMEOUT为请求接口超时时间，单位s
-# web_search是否开启联网搜索
-# provider Api接口供应商
-```
-
-- git本地部署
+### git本地部署
 
 ```sh
 git clone https://github.com/mouxan/gpt4free.git
