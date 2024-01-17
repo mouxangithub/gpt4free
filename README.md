@@ -10,9 +10,11 @@
 
 ### Railway部署
 
-- [注册Railway](https://railway.app?referralCode=bbE8bz)
+- 1.[注册Railway](https://railway.app?referralCode=bbE8bz)
 
-- [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/zIYnPJ?referralCode=bbE8bz)
+- 2.点击一键部署：[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/zIYnPJ?referralCode=bbE8bz)
+
+- 3.点击部署的服务，进入Settings->Networking->Generate Domain（生成随机域名）/Custom Domain（绑定自定义自己的域名），然后就可以通过这个域名进行原神启动！
 
 ### 目前仅提供docker部署和git本地部署
 
