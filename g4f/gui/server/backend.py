@@ -2,7 +2,7 @@ import logging
 import json
 from flask import request, Flask
 from typing import Generator
-from g4f import debug, version, models
+from g4f import version, models
 from g4f import _all_models, get_last_provider, ChatCompletion
 from g4f.image import is_allowed_extension, to_image
 from g4f.errors import VersionNotFoundError
@@ -10,7 +10,6 @@ from g4f.Provider import __providers__
 from g4f.Provider.bing.create_images import patch_provider
 from .internet import get_search_message
 
-debug.logging = True
 
 class Backend_Api:
     """
@@ -139,7 +138,7 @@ class Backend_Api:
         if 'image' in request.files:
             file = request.files['image']
             if file.filename != '' and is_allowed_extension(file.filename):
-                kwargs['image'] = to_image(file.stream)
+                kwargs['image'] = to_image(file.stream, file.filename.endswith('.svg'))
         if 'json' in request.form:
             json_data = json.loads(request.form['json'])
         else:

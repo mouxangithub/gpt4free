@@ -4,9 +4,9 @@ import base64
 from .typing import ImageType, Union
 from PIL import Image
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'}
 
-def to_image(image: ImageType) -> Image.Image:
+def to_image(image: ImageType, is_svg: bool = False) -> Image.Image:
     """
     Converts the input image to a PIL Image object.
 
@@ -16,6 +16,16 @@ def to_image(image: ImageType) -> Image.Image:
     Returns:
         Image.Image: The converted PIL Image object.
     """
+    if is_svg:
+        try:
+            import cairosvg
+        except ImportError:
+            raise RuntimeError('Install "cairosvg" package for open svg images')
+        if not isinstance(image, bytes):
+            image = image.read()
+        buffer = BytesIO()
+        cairosvg.svg2png(image, write_to=buffer)
+        image = Image.open(buffer)
     if isinstance(image, str):
         is_data_uri_an_image(image)
         image = extract_data_uri(image)
@@ -112,7 +122,7 @@ def get_orientation(image: Image.Image) -> int:
     """
     exif_data = image.getexif() if hasattr(image, 'getexif') else image._getexif()
     if exif_data is not None:
-        orientation = exif_data.get(274)  # 274 corresponds to the orientation tag in EXIF
+        orientation = exif_data.get(274) # 274 corresponds to the orientation tag in EXIF
         if orientation is not None:
             return orientation
 
@@ -153,26 +163,28 @@ def to_base64(image: Image.Image, compression_rate: float) -> str:
         str: The base64-encoded image.
     """
     output_buffer = BytesIO()
+    if image.mode != "RGB":
+        image = image.convert('RGB')
     image.save(output_buffer, format="JPEG", quality=int(compression_rate * 100))
     return base64.b64encode(output_buffer.getvalue()).decode()
 
-def format_images_markdown(images, prompt: str, preview: str="{image}?w=200&h=200") -> str:
+def format_images_markdown(images, alt: str, preview: str="{image}?w=200&h=200") -> str:
     """
     Formats the given images as a markdown string.
 
     Args:
         images: The images to format.
-        prompt (str): The prompt for the images.
+        alt (str): The alt for the images.
         preview (str, optional): The preview URL format. Defaults to "{image}?w=200&h=200".
 
     Returns:
         str: The formatted markdown string.
     """
-    if isinstance(images, list):
-        images = [f"[![#{idx+1} {prompt}]({preview.replace('{image}', image)})]({image})" for idx, image in enumerate(images)]
-        images = "\n".join(images)
+    if isinstance(images, str):
+        images = f"[![{alt}]({preview.replace('{image}', images)})]({images})"
     else:
-        images = f"[![{prompt}]({images})]({images})"
+        images = [f"[![#{idx+1} {alt}]({preview.replace('{image}', image)})]({image})" for idx, image in enumerate(images)]
+        images = "\n".join(images)
     start_flag = "<!-- generated images start -->\n"
     end_flag = "<!-- generated images end -->\n"
     return f"\n{start_flag}{images}\n{end_flag}\n"
