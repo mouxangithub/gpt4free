@@ -1,5 +1,4 @@
 import os
-
 from .server.app import app
 from .server.api import Api
 from .server.website import Website

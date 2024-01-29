@@ -9,7 +9,6 @@ from ..requests import StreamSession
 class Phind(AsyncGeneratorProvider):
     url = "https://www.phind.com"
     working = True
-    supports_gpt_4 = True
     supports_stream = True
     supports_message_history = True
 
@@ -69,6 +68,8 @@ class Phind(AsyncGeneratorProvider):
                         if chunk.startswith(b'<PHIND_WEBRESULTS>') or chunk.startswith(b'<PHIND_FOLLOWUP>'):
                             pass
                         elif chunk.startswith(b"<PHIND_METADATA>") or chunk.startswith(b"<PHIND_INDICATOR>"):
+                            pass
+                        elif chunk.startswith(b"<PHIND_SPAN_BEGIN>") or chunk.startswith(b"<PHIND_SPAN_END>"):
                             pass
                         elif chunk:
                             yield chunk.decode()

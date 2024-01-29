@@ -307,7 +307,7 @@ or set the api base in your client to: [http://localhost:1337/v1](http://localho
 ##### Install using pypi:
 
 ```
-pip install -U g4f
+pip install -U "g4f[all]"
 ```
 
 ##### or:
@@ -341,13 +341,19 @@ python3 -m venv venv
    ```
    source venv/bin/activate
    ```
-5. Install the required Python packages from `requirements.txt`:
+5. Install minimum requirements:
+
+```
+pip install -r requirements-min.txt
+```
+
+6. Or install all used Python packages from `requirements.txt`:
 
 ```
 pip install -r requirements.txt
 ```
 
-6. Create a `test.py` file in the root folder and start using the repo, further Instructions are below
+7. Create a `test.py` file in the root folder and start using the repo, further Instructions are below
 
 ```py
 import g4f
@@ -664,7 +670,6 @@ for choice in json_response:
 | [chat.geekgpt.org](https://chat.geekgpt.org) | `g4f.Provider.GeekGpt` | ✔️ | ✔️ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [gptchatly.com](https://gptchatly.com) | `g4f.Provider.GptChatly` | ✔️ | ✔️ | ❌ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [liaobots.site](https://liaobots.site) | `g4f.Provider.Liaobots` | ✔️ | ✔️ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
-| [www.phind.com](https://www.phind.com) | `g4f.Provider.Phind` | ❌ | ✔️ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [raycast.com](https://raycast.com) | `g4f.Provider.Raycast` | ✔️ | ✔️ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ✔️ |
 
 ### GPT-3.5
