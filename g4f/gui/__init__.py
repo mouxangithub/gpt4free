@@ -12,6 +12,9 @@ def run_gui(host: str = '0.0.0.0',
             apiStatus: bool = False,
             list_ignored_providers: List[str] = None
             ) -> None:
+    if debug:
+        import g4f
+        g4f.debug.logging = True
     config = {
         'host': host,
         'port': port,

@@ -436,6 +436,27 @@ docker-compose down
 
 ## 💡 Usage
 
+### New Client with Image Generation
+
+#### not jet released
+
+```python
+from g4f.client import Client
+
+client = Client()
+response = client.images.generate(
+  model="gemini",
+  prompt="a white siamese cat",
+  ...
+)
+image_url = response.data[0].url
+```
+Result:
+
+[![Image with cat](/docs/cat.jpeg)](/docs/client.md)
+
+[to the client API](/docs/client.md)
+
 ### The Web UI
 
 To start the web interface, type the following codes in the command line.
@@ -940,6 +961,13 @@ for choice in json_response:
       <td><a href="https://github.com/Lin-jun-xiang/docGPT-streamlit/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/Lin-jun-xiang/docGPT-streamlit?style=flat-square&labelColor=343b41"/></a></td>
       <td><a href="https://github.com/Lin-jun-xiang/docGPT-streamlit/issues"><img alt="Issues" src="https://img.shields.io/github/issues/Lin-jun-xiang/docGPT-streamlit?style=flat-square&labelColor=343b41"/></a></td>
       <td><a href="https://github.com/Lin-jun-xiang/docGPT-streamlit/pulls"><img alt="Pull Requests" src="https://img.shields.io/github/issues-pr/Lin-jun-xiang/docGPT-streamlit?style=flat-square&labelColor=343b41"/></a></td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/Simatwa/python-tgpt"><b>python-tgpt</b></a></td>
+      <td><a href="https://github.com/Simatwa/python-tgpt/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/Simatwa/python-tgpt?style=flat-square&labelColor=343b41"/></a></td>
+      <td><a href="https://github.com/Simatwa/python-tgpt/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/Simatwa/python-tgpt?style=flat-square&labelColor=343b41"/></a></td>
+      <td><a href="https://github.com/Simatwa/python-tgpt/issues"><img alt="Issues" src="https://img.shields.io/github/issues/Simatwa/python-tgpt?style=flat-square&labelColor=343b41"/></a></td>
+      <td><a href="https://github.com/Simatwa/python-tgpt/pulls"><img alt="Pull Requests" src="https://img.shields.io/github/issues-pr/Simatwa/python-tgpt?style=flat-square&labelColor=343b41"/></a></td>
     </tr>
   </tbody>
 </table>
