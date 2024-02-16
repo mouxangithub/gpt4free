@@ -198,12 +198,14 @@ class Api:
         auth = item_data.get('auth', None)
         ignore_stream_and_auth = item_data.get('ignore_stream_and_auth', False)
         ignore_working = item_data.get('ignore_working', False)
+        temperature = item_data.get('temperature')
 
         try:
             response = g4f.ChatCompletion.create(
                 model=model,
                 stream=stream,
                 messages=messages,
+                temperature=temperature,
                 provider=provider,
                 proxy=self.env.get('proxy', None),
                 socks5=self.env.get('socks5', None),

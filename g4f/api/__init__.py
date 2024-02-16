@@ -99,8 +99,8 @@ class Api:
                     model=model,
                     stream=stream,
                     messages=messages,
-                    temperature = temperature,
-                    provider = provider,
+                    temperature=temperature,
+                    provider=provider,
                     ignored=self.list_ignored_providers
                 )
             except Exception as e:
