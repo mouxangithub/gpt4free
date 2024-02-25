@@ -1,17 +1,23 @@
 from __future__ import annotations
 
 import re
+import os
+import time
+import random
+import string
 
 from .stubs import ChatCompletion, ChatCompletionChunk, Image, ImagesResponse
 from .typing import Union, Generator, Messages, ImageType
-from .base_provider import BaseProvider, ProviderType
+from .providers.types import BaseProvider, ProviderType
 from .image import ImageResponse as ImageProviderResponse
-from .Provider import BingCreateImages, Gemini, OpenaiChat
+from .Provider.BingCreateImages import BingCreateImages
+from .Provider.needs_auth import Gemini, OpenaiChat
 from .errors import NoImageResponseError
-from . import get_model_and_provider
+from . import get_model_and_provider, get_last_provider
 
 ImageProvider = Union[BaseProvider, object]
 Proxies = Union[dict, str]
+IterResponse = Generator[Union[ChatCompletion, ChatCompletionChunk], None, None]
 
 def read_json(text: str) -> dict:
     """
@@ -29,21 +35,19 @@ def read_json(text: str) -> dict:
     return text
 
 def iter_response(
-    response: iter,
+    response: iter[str],
     stream: bool,
     response_format: dict = None,
     max_tokens: int = None,
     stop: list = None
-) -> Generator:
+) -> IterResponse:
     content = ""
     finish_reason = None
-    last_chunk = None
+    completion_id = ''.join(random.choices(string.ascii_letters + string.digits, k=28))
     for idx, chunk in enumerate(response):
-        if last_chunk is not None:
-            yield ChatCompletionChunk(last_chunk, finish_reason)
         content += str(chunk)
         if max_tokens is not None and idx + 1 >= max_tokens:
-            finish_reason = "max_tokens"
+            finish_reason = "length"
         first = -1
         word = None
         if stop is not None:
@@ -61,41 +65,50 @@ def iter_response(
         if first != -1:
             finish_reason = "stop"
         if stream:
-            last_chunk = chunk
+            yield ChatCompletionChunk(chunk, None, completion_id, int(time.time()))
         if finish_reason is not None:
             break
-    if last_chunk is not None:
-        yield ChatCompletionChunk(last_chunk, finish_reason)
-    if not stream:
+    finish_reason = "stop" if finish_reason is None else finish_reason
+    if stream:
+        yield ChatCompletionChunk(None, finish_reason, completion_id, int(time.time()))
+    else:
         if response_format is not None and "type" in response_format:
             if response_format["type"] == "json_object":
-                response = read_json(response)
-        yield ChatCompletion(content, finish_reason)
+                content = read_json(content)
+        yield ChatCompletion(content, finish_reason, completion_id, int(time.time()))
+
+def iter_append_model_and_provider(response: IterResponse) -> IterResponse:
+    last_provider = None
+    for chunk in response:
+        last_provider = get_last_provider(True) if last_provider is None else last_provider
+        chunk.model = last_provider.get("model")
+        chunk.provider =  last_provider.get("name")
+        yield chunk
 
 class Client():
-    proxies: Proxies = None
-    chat: Chat
-    images: Images
 
     def __init__(
         self,
+        api_key: str = None,
+        proxies: Proxies = None,
         provider: ProviderType = None,
         image_provider: ImageProvider = None,
-        proxies: Proxies = None,
         **kwargs
     ) -> None:
-        self.chat = Chat(self, provider)
-        self.images = Images(self, image_provider)
+        self.api_key: str = api_key
         self.proxies: Proxies = proxies
+        self.chat: Chat = Chat(self, provider)
+        self.images: Images = Images(self, image_provider)
 
     def get_proxy(self) -> Union[str, None]:
-        if isinstance(self.proxies, str) or self.proxies is None:
+        if isinstance(self.proxies, str):
             return self.proxies
+        elif self.proxies is None:
+            return os.environ.get("G4F_PROXY")
         elif "all" in self.proxies:
             return self.proxies["all"]
         elif "https" in self.proxies:
             return self.proxies["https"]
-        return None
 
 class Completions():
     def __init__(self, client: Client, provider: ProviderType = None):
@@ -110,22 +123,27 @@ class Completions():
         stream: bool = False,
         response_format: dict = None,
         max_tokens: int = None,
-        stop: Union[list. str] = None,
+        stop: Union[list[str], str] = None,
+        api_key: str = None,
         **kwargs
     ) -> Union[ChatCompletion, Generator[ChatCompletionChunk]]:
-        if max_tokens is not None:
-            kwargs["max_tokens"] = max_tokens
-        if stop:
-            kwargs["stop"] = stop
         model, provider = get_model_and_provider(
             model,
             self.provider if provider is None else provider,
             stream,
             **kwargs
         )
-        response = provider.create_completion(model, messages, stream=stream, **kwargs)
         stop = [stop] if isinstance(stop, str) else stop
+        response = provider.create_completion(
+            model, messages, stream,
+            proxy=self.client.get_proxy(),
+            max_tokens=max_tokens,
+            stop=stop,
+            api_key=self.client.api_key if api_key is None else api_key,
+            **kwargs
+        )
         response = iter_response(response, stream, response_format, max_tokens, stop)
+        response = iter_append_model_and_provider(response)
         return response if stream else next(response)
 
 class Chat():

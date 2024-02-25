@@ -209,7 +209,7 @@ Written by [@xtekky](https://github.com/hlohaus) & maintained by [@hlohaus](http
 
 <div id="top"></div>
 
-> By using this repository or any code related to it, you agree to the [legal notice](LEGAL_NOTICE.md). The author is **not responsible for the usage of this repository nor endorses it**, nor is the author responsible for any any copies, forks, re-uploads made by other users, or anything else related to GPT4Free. This is the author's only account and repository. To prevent impersonation or irresponsible actions, please comply with the GNU GPL license this Repository uses.  
+> By using this repository or any code related to it, you agree to the [legal notice](LEGAL_NOTICE.md). The author is **not responsible for the usage of this repository nor endorses it**, nor is the author responsible for any copies, forks, re-uploads made by other users, or anything else related to GPT4Free. This is the author's only account and repository. To prevent impersonation or irresponsible actions, please comply with the GNU GPL license this Repository uses.  
 
 > [!Warning]
 *"gpt4free"* serves as a **PoC** (proof of concept), demonstrating the development of a an api package with multi-provider requests, with features like timeouts, load balance and flow control.
@@ -226,27 +226,29 @@ docker pull hlohaus789/g4f
 ```
 
 ## 🆕 What's New
+- Guide: How do I use my smartphone📱to run g4f?
+  - [/docs/guides/phone](/docs/guides/phone.md)
+- New: How can AI help me 💁with writing code?
+  - [/docs/guides/help_me](/docs/guides/help_me.md)
 - Join our Telegram Channel: [t.me/g4f_channel](https://telegram.me/g4f_channel)
 - Join our Discord Group: [discord.gg/XfybzPXPH5](https://discord.gg/XfybzPXPH5)
-- Explore the g4f Documentation (unfinished): [g4f.mintlify.app](https://g4f.mintlify.app) | Contribute to the docs via: [github.com/xtekky/gpt4free-docs](https://github.com/xtekky/gpt4free-docs)
 
-## Site Takedown
+## 🔻 Site Takedown
 Is your site on this repository and you want to take it down ? email takedown@g4f.ai with proof it is yours and it will be removed as fast as possible. - to prevent reproduction please secure your api ; )
 
-## Feedback
+## 🚀  Feedback and Todo
 You can always leave some feedback here: https://forms.gle/FeWV9RLEedfdkmFN6
 
-## To do
 As per the survey, here is a list of improvements to come
 - [x] update the repository to include the new openai library syntax (ex: `Openai()` class) | completed, use `g4f.client.Client`
 - [ ] golang implementation
-- [ ] Improve Documentation (on g4f.mintlify.app) & Do video tutorials
-- [ ] Improve the provider status list & updates
+- [ ] 🚧 Improve Documentation (in /docs & Guides, Howtos, & Do video tutorials
+- [x] Improve the provider status list & updates
 - [ ] Tutorials on how to reverse sites to write your own wrapper (PoC only ofc)
 - [ ] Improve the Bing wrapper. (might write a new wrapper in golang as it is very fast)
 - [ ] Write a standard provider performance test to improve the stability
 - [ ] Potential support and development of local models
-- [ ] improve compatibility and error handling
+- [ ] 🚧 improve compatibility and error handling
 
 ## 📚 Table of Contents
 
@@ -255,22 +257,17 @@ As per the survey, here is a list of improvements to come
 - [🛠️ Getting Started](#-getting-started)
     + [Docker container](#docker-container)
       - [Quick start](#quick-start)
-    + [Use python package](#use-python-package)
+    + [Use python](#use-python)
       - [Prerequisites](#prerequisites)
-      - [Install using pypi](#install-using-pypi)
-    + [Docker for Developers](#docker-for-developers)
+      - [Install using PyPI package:](#install-using-pypi-package)
+      - [Install from source:](#install-from-source)
+      - [Install using Docker:](#install-using-docker)
 - [💡 Usage](#-usage)
-  * [The Web UI](#the-web-ui)
-  * [The `g4f` Package](#the-g4f-package)
-    + [ChatCompletion](#chatcompletion)
-      - [Completion](#completion)
-      - [Providers](#providers)
-      - [Using Browser](#using-browser)
-      - [Async Support](#async-support)
-      - [Proxy and Timeout Support](#proxy-and-timeout-support)
-  * [Interference openai-proxy API](#interference-openai-proxy-api-use-with-openai-python-package-)
-    + [Run interference API from PyPi package](#run-interference-api-from-pypi-package)
-    + [Run interference API from repo](#run-interference-api-from-repo)
+  * [Text Generation](#text-generation)
+  * [Image Generation](#image-generation)
+  * [Web UI](#web-ui)
+  * [Interference API](#interference-api)
+  * [Configuration](#configuration)
 - [🚀 Providers and Models](#-providers-and-models)
   * [GPT-4](#gpt-4)
   * [GPT-3.5](#gpt-35)
@@ -278,8 +275,8 @@ As per the survey, here is a list of improvements to come
   * [Models](#models)
 - [🔗 Related GPT4Free Projects](#-related-gpt4free-projects)
 - [🤝 Contribute](#-contribute)
-    + [Create Provider with AI Tool](#create-provider-with-ai-tool)
-    + [Create Provider](#create-provider)
+    + [How do i create a new Provider?](#guide-how-do-i-create-a-new-provider)
+    + [How can AI help me with writing code?](#guide-how-can-ai-help-me-with-writing-code)
 - [🙌 Contributors](#-contributors)
 - [©️ Copyright](#-copyright)
 - [⭐ Star History](#-star-history)
@@ -302,6 +299,11 @@ docker run -p 8080:8080 -p 1337:1337 -p 7900:7900 --shm-size="2g" hlohaus789/g4f
 or set the api base in your client to: [http://localhost:1337/v1](http://localhost:1337/v1)
 4. (Optional) If you need to log in to a provider, you can view the desktop from the container here: http://localhost:7900/?autoconnect=1&resize=scale&password=secret.
 
+##### Use your smartphone:
+
+Run the Web UI on Your Smartphone:
+- [/docs/guides/phone](/docs/guides/phone.md)
+
 #### Use python
 
 ##### Prerequisites:
@@ -309,30 +311,30 @@ or set the api base in your client to: [http://localhost:1337/v1](http://localho
 1. [Download and install Python](https://www.python.org/downloads/) (Version 3.10+ is recommended).
 2. [Install Google Chrome](https://www.google.com/chrome/) for providers with webdriver
 
-##### Install using pypi:
+##### Install using PyPI package:
 
 ```
 pip install -U g4f[all]
 ```
 
-Or use partial requirements.
-
-See: [/docs/requirements](/docs/requirements.md)
+How do I install only parts or do disable parts?
+Use partial requirements: [/docs/requirements](/docs/requirements.md)
 
 ##### Install from source:
 
-See: [/docs/git](/docs/git.md)
+How do I load the project using git and installing the project requirements?
+Read this tutorial and follow it step by step: [/docs/git](/docs/git.md)
 
 
-##### Install using Docker
+##### Install using Docker:
 
- See: [/docs/docker](/docs/docker.md)
+How do I build and run composer image from source?
+Use docker-compose: [/docs/docker](/docs/docker.md)
 
 
 ## 💡 Usage
 
 #### Text Generation
-**with Python**
 
 ```python
 from g4f.client import Client
@@ -340,14 +342,17 @@ from g4f.client import Client
 client = Client()
 response = client.chat.completions.create(
     model="gpt-3.5-turbo",
-    messages=[{"role": "user", "content": "Say this is a test"}],
+    messages=[{"role": "user", "content": "Hello"}],
     ...
 )
 print(response.choices[0].message.content)
 ```
 
+```
+Hello! How can I assist you today?
+```
+
 #### Image Generation
-**with Python**
 
 ```python
 from g4f.client import Client
@@ -360,15 +365,14 @@ response = client.images.generate(
 )
 image_url = response.data[0].url
 ```
-Result:
+
 
 [![Image with cat](/docs/cat.jpeg)](/docs/client.md)
 
-**See also for Python:**
+**Full Documentation for Python API**
 
-- [Documentation for new Client](/docs/client.md)
-- [Documentation for leagcy API](/docs/leagcy.md)
-
+- New Client API like the OpenAI Python library: [/docs/client](/docs/client.md)
+- Legacy API with python modules: [/docs/legacy](/docs/legacy.md)
 
 #### Web UI
 
@@ -378,7 +382,7 @@ To start the web interface, type the following codes in python:
 from g4f.gui import run_gui
 run_gui()
 ```
-or type in command line:
+or execute the following command:
 ```bash
 python -m g4f.cli gui -port 8080 -debug
 ```
@@ -393,7 +397,7 @@ See: [/docs/interference](/docs/interference.md)
 
 ##### Cookies / Access Token
 
-For generating images with Bing and for the OpenAi Chat  you need cookies or a token from your browser session. From Bing you need the "_U" cookie and from OpenAI you need the "access_token". You can pass the cookies / the  access token in the create function or you use the `set_cookies` setter before you run G4F:
+For generating images with Bing and for the OpenAi Chat  you need cookies or a token from your browser session. From Bing you need the "_U" cookie and from OpenAI you need the "access_token". You can pass the cookies / the access token in the create function or you use the `set_cookies` setter before you run G4F:
 
 ```python
 from g4f.cookies import set_cookies
@@ -435,11 +439,10 @@ set G4F_PROXY=http://host:port
 | Website | Provider | GPT-3.5 | GPT-4 | Stream | Status | Auth |
 | ------  | -------  | ------- | ----- | ------ | ------ | ---- |
 | [bing.com](https://bing.com/chat) | `g4f.Provider.Bing` | ❌ | ✔️ | ✔️ | ![Active](https://img.shields.io/badge/Active-brightgreen) | ❌ |
-| [free.chatgpt.org.uk](https://free.chatgpt.org.uk) | `g4f.Provider.FreeChatgpt` | ✔️ | ✔️ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [liaobots.site](https://liaobots.site) | `g4f.Provider.Liaobots` | ✔️ | ✔️ | ✔️ | ![Active](https://img.shields.io/badge/Active-brightgreen) | ❌ |
-| [chat.openai.com](https://chat.openai.com) | `g4f.Provider.OpenaiChat` | ✔️ | ✔️ | ✔️ | ![Active](https://img.shields.io/badge/Active-brightgreen) | ✔️ |
+| [chat.openai.com](https://chat.openai.com) | `g4f.Provider.OpenaiChat` | ✔️ | ✔️ | ✔️ | ![Unknown](https://img.shields.io/badge/Active-brightgreen) | ✔️ |
 | [raycast.com](https://raycast.com) | `g4f.Provider.Raycast` | ✔️ | ✔️ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ✔️ |
-| [beta.theb.ai](https://beta.theb.ai) | `g4f.Provider.Theb` | ✔️ | ✔️ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
+| [you.com](https://you.com) | `g4f.Provider.You` | ✔️ | ✔️ | ✔️ | ![Active](https://img.shields.io/badge/Active-brightgreen) | ❌ |
 | [chat.geekgpt.org](https://chat.geekgpt.org) | `g4f.Provider.GeekGpt` | ✔️ | ✔️ | ✔️ | ![Inactive](https://img.shields.io/badge/Inactive-red) | ❌ |
 
 ### GPT-3.5
@@ -449,14 +452,13 @@ set G4F_PROXY=http://host:port
 | [chat3.aiyunos.top](https://chat3.aiyunos.top/) | `g4f.Provider.AItianhuSpace` | ✔️ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [aichatonline.org](https://aichatonline.org) | `g4f.Provider.AiChatOnline` | ✔️ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [openchat.team](https://openchat.team) | `g4f.Provider.Aura` | ✔️ | ❌ | ✔️ | ![Active](https://img.shields.io/badge/Active-brightgreen) | ❌ |
-| [chatbase.co](https://www.chatbase.co) | `g4f.Provider.ChatBase` | ✔️ | ❌ | ✔️ | ![Active](https://img.shields.io/badge/Active-brightgreen) | ❌ |
+| [chatbase.co](https://www.chatbase.co) | `g4f.Provider.ChatBase` | ✔️ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [chatforai.store](https://chatforai.store) | `g4f.Provider.ChatForAi` | ✔️ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [chatgpt.ai](https://chatgpt.ai) | `g4f.Provider.ChatgptAi` | ✔️ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [chat.chatgptdemo.net](https://chat.chatgptdemo.net) | `g4f.Provider.ChatgptDemo` | ✔️ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [chatgpt-free.cc](https://www.chatgpt-free.cc) | `g4f.Provider.ChatgptNext` | ✔️ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [chat.3211000.xyz](https://chat.3211000.xyz) | `g4f.Provider.Chatxyz` | ✔️ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [gptalk.net](https://gptalk.net) | `g4f.Provider.GPTalk` | ✔️ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
-| [geminiprochat.com](https://geminiprochat.com) | `g4f.Provider.GeminiProChat` | ✔️ | ❌ | ✔️ | ![Active](https://img.shields.io/badge/Active-brightgreen) | ❌ |
 | [gpt6.ai](https://gpt6.ai) | `g4f.Provider.Gpt6` | ✔️ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [gptchatly.com](https://gptchatly.com) | `g4f.Provider.GptChatly` | ✔️ | ❌ | ❌ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [ai18.gptforlove.com](https://ai18.gptforlove.com) | `g4f.Provider.GptForLove` | ✔️ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
@@ -468,7 +470,6 @@ set G4F_PROXY=http://host:port
 | [perplexity.ai](https://www.perplexity.ai) | `g4f.Provider.PerplexityAi` | ✔️ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [poe.com](https://poe.com) | `g4f.Provider.Poe` | ✔️ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ✔️ |
 | [talkai.info](https://talkai.info) | `g4f.Provider.TalkAi` | ✔️ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
-| [you.com](https://you.com) | `g4f.Provider.You` | ✔️ | ❌ | ✔️ | ![Active](https://img.shields.io/badge/Active-brightgreen) | ❌ |
 | [aitianhu.com](https://www.aitianhu.com) | `g4f.Provider.AItianhu` | ✔️ | ❌ | ✔️ | ![Inactive](https://img.shields.io/badge/Inactive-red) | ❌ |
 | [e.aiask.me](https://e.aiask.me) | `g4f.Provider.AiAsk` | ✔️ | ❌ | ✔️ | ![Inactive](https://img.shields.io/badge/Inactive-red) | ❌ |
 | [chatgpt.bestim.org](https://chatgpt.bestim.org) | `g4f.Provider.Bestim` | ✔️ | ❌ | ✔️ | ![Inactive](https://img.shields.io/badge/Inactive-red) | ❌ |
@@ -491,12 +492,16 @@ set G4F_PROXY=http://host:port
 | ------  | -------  | ------- | ----- | ------ | ------ | ---- |
 | [bard.google.com](https://bard.google.com) | `g4f.Provider.Bard` | ❌ | ❌ | ❌ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ✔️ |
 | [deepinfra.com](https://deepinfra.com) | `g4f.Provider.DeepInfra` | ❌ | ❌ | ✔️ | ![Active](https://img.shields.io/badge/Active-brightgreen) | ❌ |
-| [gemini.google.com](https://gemini.google.com) | `g4f.Provider.Gemini` | ❌ | ❌ | ❌ | ![Active](https://img.shields.io/badge/Active-brightgreen) | ✔️ |
-| [huggingface.co](https://huggingface.co/chat) | `g4f.Provider.HuggingChat` | ❌ | ❌ | ✔️ | ![Active](https://img.shields.io/badge/Active-brightgreen) | ❌ |
+| [gemini.google.com](https://gemini.google.com) | `g4f.Provider.Gemini` | ❌ | ❌ | ✔️ | ![Active](https://img.shields.io/badge/Active-brightgreen) | ✔️ |
+| [ai.google.dev](https://ai.google.dev) | `g4f.Provider.GeminiPro` | ❌ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Active-brightgreen) | ❌ |
+| [gemini-chatbot-sigma.vercel.app](https://gemini-chatbot-sigma.vercel.app) | `g4f.Provider.GeminiProChat` | ✔️ | ❌ | ✔️ | ![Active](https://img.shields.io/badge/Active-brightgreen) | ❌ |
+| [huggingface.co](https://huggingface.co/chat) | `g4f.Provider.HuggingChat` | ❌ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [llama2.ai](https://www.llama2.ai) | `g4f.Provider.Llama2` | ❌ | ❌ | ✔️ | ![Active](https://img.shields.io/badge/Active-brightgreen) | ❌ |
 | [labs.perplexity.ai](https://labs.perplexity.ai) | `g4f.Provider.PerplexityLabs` | ❌ | ❌ | ✔️ | ![Active](https://img.shields.io/badge/Active-brightgreen) | ❌ |
-| [phind.com](https://www.phind.com) | `g4f.Provider.Phind` | ❌ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
-| [pi.ai](https://pi.ai/talk) | `g4f.Provider.Pi` | ❌ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
+| [phind.com](https://www.phind.com) | `g4f.Provider.Phind` | ❌ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Active-brightgreen) | ❌ |
+| [pi.ai](https://pi.ai/talk) | `g4f.Provider.Pi` | ❌ | ❌ | ✔️ | ![Unknown](https://img.shields.io/badge/Active-brightgreen) | ❌ |
+| [beta.theb.ai](https://beta.theb.ai) | `g4f.Provider.Theb` | ✔️ | ✔️ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
+| [free.chatgpt.org.uk](https://free.chatgpt.org.uk) | `g4f.Provider.FreeChatgpt` | ✔️ | ✔️ | ✔️ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ❌ |
 | [theb.ai](https://theb.ai) | `g4f.Provider.ThebApi` | ❌ | ❌ | ❌ | ![Unknown](https://img.shields.io/badge/Unknown-grey) | ✔️ |
 | [open-assistant.io](https://open-assistant.io/chat) | `g4f.Provider.OpenAssistant` | ❌ | ❌ | ✔️ | ![Inactive](https://img.shields.io/badge/Inactive-red) | ✔️ |
 
@@ -507,10 +512,11 @@ set G4F_PROXY=http://host:port
 | gpt-3.5-turbo | OpenAI | 5+ Providers | [openai.com](https://openai.com/) |
 | gpt-4 | OpenAI | 2+ Providers | [openai.com](https://openai.com/) |
 | gpt-4-turbo | OpenAI | g4f.Provider.Bing | [openai.com](https://openai.com/) |
-| Llama-2-7b-chat-hf | Huggingface | 2+ Providers | [huggingface.co](https://huggingface.co/) |
-| Llama-2-13b-chat-hf | Huggingface | 2+ Providers | [huggingface.co](https://huggingface.co/) |
-| Llama-2-70b-chat-hf | Huggingface | 4+ Providers | [huggingface.co](https://huggingface.co/) |
-| CodeLlama-34b-Instruct-hf | Huggingface | 3+ Providers | [huggingface.co](https://huggingface.co/) |
+| Llama-2-7b-chat-hf | Meta | 2+ Providers | [llama.meta.com](https://llama.meta.com/) |
+| Llama-2-13b-chat-hf | Meta | 2+ Providers | [llama.meta.com](https://llama.meta.com/) |
+| Llama-2-70b-chat-hf | Meta | 4+ Providers | [llama.meta.com](https://llama.meta.com/) |
+| CodeLlama-34b-Instruct-hf | Meta | 3+ Providers | [llama.meta.com](https://llama.meta.com/) |
+| CodeLlama-70b-Instruct-hf | Meta | g4f.Provider.DeepInfra | [llama.meta.com](https://llama.meta.com/) |
 | Mixtral-8x7B-Instruct-v0.1 | Huggingface | 3+ Providers | [huggingface.co](https://huggingface.co/) |
 | Mistral-7B-Instruct-v0.1 | Huggingface | 3+ Providers | [huggingface.co](https://huggingface.co/) |
 | dolphin-2.6-mixtral-8x7b | Huggingface | g4f.Provider.DeepInfra | [huggingface.co](https://huggingface.co/) |
@@ -625,72 +631,19 @@ set G4F_PROXY=http://host:port
 
 ## 🤝 Contribute
 
-#### Create Provider with AI Tool
+We welcome contributions from the community. Whether you're adding new providers or features, or simply fixing typos and making small improvements, your input is valued. Creating a pull request is all it takes – our co-pilot will handle the code review process. Once all changes have been addressed, we'll merge the pull request into the main branch and release the updates at a later time.
 
-Call in your terminal the `create_provider.py` script:
-```bash
-python etc/tool/create_provider.py
-```
-1. Enter your name for the new provider.
-2. Copy and paste the `cURL` command from your browser developer tools.
-3. Let the AI ​​create the provider for you.
-4. Customize the provider according to your needs.
+###### Guide: How do i create a new Provider?
 
-#### Create Provider
+ - Read: [/docs/guides/create_provider](/docs/guides/create_provider.md)
 
-1. Check out the current [list of potential providers](https://github.com/zukixa/cool-ai-stuff#ai-chat-websites), or find your own provider source!
-2. Create a new file in [g4f/Provider](./g4f/Provider) with the name of the Provider
-3. Implement a class that extends [BaseProvider](./g4f/Provider/base_provider.py).
+###### Guide: How can AI help me with writing code?
 
-```py
-from __future__ import annotations
-
-from ..typing import AsyncResult, Messages
-from .base_provider import AsyncGeneratorProvider
-
-class HogeService(AsyncGeneratorProvider):
-    url                   = "https://chat-gpt.com"
-    working               = True
-    supports_gpt_35_turbo = True
-
-    @classmethod
-    async def create_async_generator(
-        cls,
-        model: str,
-        messages: Messages,
-        proxy: str = None,
-        **kwargs
-    ) -> AsyncResult:
-        yield ""
-```
-
-4. Here, you can adjust the settings, for example, if the website does support streaming, set `supports_stream` to `True`...
-5. Write code to request the provider in `create_async_generator` and `yield` the response, _even if_ it's a one-time response, do not hesitate to look at other providers for inspiration
-6. Add the Provider Name in [`g4f/Provider/__init__.py`](./g4f/Provider/__init__.py)
-
-```py
-from .HogeService import HogeService
-
-__all__ = [
-  HogeService,
-]
-```
-
-7. You are done !, test the provider by calling it:
-
-```py
-import g4f
-
-response = g4f.ChatCompletion.create(model='gpt-3.5-turbo', provider=g4f.Provider.PROVIDERNAME,
-                                    messages=[{"role": "user", "content": "test"}], stream=g4f.Provider.PROVIDERNAME.supports_stream)
-
-for message in response:
-    print(message, flush=True, end='')
-```
+ - Read: [/docs/guides/help_me](/docs/guides/help_me.md)
 
 ## 🙌 Contributors
 
-A list of the contributors is available [here](https://github.com/xtekky/gpt4free/graphs/contributors)   
+A list of all contributors is available [here](https://github.com/xtekky/gpt4free/graphs/contributors)   
 The [`Vercel.py`](https://github.com/xtekky/gpt4free/blob/main/g4f/Provider/Vercel.py) file contains code from [vercel-llm-api](https://github.com/ading2210/vercel-llm-api) by [@ading2210](https://github.com/ading2210), which is licensed under the [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.txt)   
 Top 1 Contributor: [@hlohaus](https://github.com/hlohaus)
 
