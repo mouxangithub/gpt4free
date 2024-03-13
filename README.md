@@ -61,7 +61,7 @@ services:
 ### git本地部署
 
 ```sh
-git clone https://github.com/mouxan/gpt4free.git
+git clone https://github.com/mouxangithub/gpt4free.git
 cd gpt4free
 pip install -r requirements.txt
 python -m cli all
