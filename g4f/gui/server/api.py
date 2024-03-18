@@ -1,327 +1,186 @@
-import g4f
-import ast
-import json
 import logging
-import random
-import string
-import time
-import nest_asyncio
+import json
+from typing import Iterator
 
-from flask import request, Response
-from typing import List
-from ... import debug
+try:
+    import webview
+except ImportError:
+    ...
 
-from g4f.image import is_allowed_extension, to_image
-from g4f.Provider import __providers__
+from g4f import version, models
+from g4f import get_last_provider, ChatCompletion
+from g4f.errors import VersionNotFoundError
+from g4f.Provider import ProviderType, __providers__, __map__
+from g4f.providers.base_provider import ProviderModelMixin
 from g4f.Provider.bing.create_images import patch_provider
-from .internet import get_search_message
+from g4f.Provider.Bing import Conversation
 
-debug.logging = True
+conversations: dict[str, Conversation] = {}
 
+class Api():
 
-class Api:
-    def __init__(self,
-                 app,
-                 env,
-                 list_ignored_providers: List[str] = None
-                 ) -> None:
-        self.app = app
-        self.env = env
-        self.list_ignored_providers = list_ignored_providers
+    def get_models(self) -> list[str]:
+        """
+        Return a list of all models.
 
-        nest_asyncio.apply()
+        Fetches and returns a list of all available models in the system.
 
-        self.routes = {
-            '/v1': {
-                'function': self.v1,
-                'methods': ['GET', 'POST']
-            },
-            '/v1/providers': {
-                'function': self.v1_providers,
-                'methods': ['GET', 'POST']
-            },
-            '/v1/providers/<provider_name>': {
-                'function': self.v1_providers_info,
-                'methods': ['GET', 'POST']
-            },
-            '/v1/models': {
-                'function': self.v1_models,
-                'methods': ['GET', 'POST']
-            },
-            '/v1/models/<model_name>': {
-                'function': self.v1_model_info,
-                'methods': ['GET', 'POST']
-            },
-            '/v1/chat/completions': {
-                'function': self.v1_chat_completions,
-                'methods': ['GET', 'POST']
-            },
-            '/v1/completions': {
-                'function': self.v1_completions,
-                'methods': ['GET', 'POST']
-            },
+        Returns:
+            List[str]: A list of model names.
+        """
+        return models._all_models
+
+    def get_provider_models(self, provider: str) -> list[dict]:
+        if provider in __map__:
+            provider: ProviderType = __map__[provider]
+            if issubclass(provider, ProviderModelMixin):
+                return [{"model": model, "default": model == provider.default_model} for model in provider.get_models()]
+            elif provider.supports_gpt_35_turbo or provider.supports_gpt_4:
+                return [
+                    *([{"model": "gpt-4", "default": not provider.supports_gpt_4}] if provider.supports_gpt_4 else []),
+                    *([{"model": "gpt-3.5-turbo", "default": not provider.supports_gpt_4}] if provider.supports_gpt_35_turbo else [])
+                ]
+            else:
+                return [];
+
+    def get_providers(self) -> list[str]:
+        """
+        Return a list of all working providers.
+        """
+        return [provider.__name__ for provider in __providers__ if provider.working]
+
+    def get_version(self):
+        """
+        Returns the current and latest version of the application.
+
+        Returns:
+            dict: A dictionary containing the current and latest version.
+        """
+        try:
+            current_version = version.utils.current_version
+        except VersionNotFoundError:
+            current_version = None
+        return {
+            "version": current_version,
+            "latest_version": version.utils.latest_version,
         }
 
-    def v1(self):
-        return self.responseJson({
-            "error": {
-                "message": "Go to /v1/chat/completions or /v1/models.",
-                "type": "invalid_request_error",
-                "param": "null",
-                "code": "null",
-            }
-        }, status=404)
+    def generate_title(self):
+        """
+        Generates and returns a title based on the request data.
 
-    def v1_models(self):
-        model_list = []
-        for model in g4f.Model.__all__():
-            model_info = (g4f.ModelUtils.convert[model])
-            model_list.append({
-                'id': model,
-                'object': 'model',
-                'created': 0,
-                'owned_by': model_info.base_provider}
-            )
-        return self.responseJson({
-            'object': 'list',
-            'data': model_list})
+        Returns:
+            dict: A dictionary with the generated title.
+        """
+        return {'title': ''}
 
-    def v1_model_info(self, model_name: str):
-        try:
-            model_info = (g4f.ModelUtils.convert[model_name])
-            return self.responseJson({
-                'id': model_name,
-                'object': 'model',
-                'created': 0,
-                'owned_by': model_info.base_provider
-            })
-        except Exception:
-            return self.responseJson({
-                "error": {
-                    "message": "The model does not exist.",
-                    "type": "invalid_request_error",
-                    "param": "null",
-                    "code": "null",
-                }
-            }, status=500)
+    def get_conversation(self, options: dict, **kwargs) -> Iterator:
+        window = webview.active_window()
+        for message in self._create_response_stream(
+            self._prepare_conversation_kwargs(options, kwargs),
+            options.get("conversation_id")
+        ):
+            if not window.evaluate_js(f"if (!this.abort) this.add_message_chunk({json.dumps(message)}); !this.abort && !this.error;"):
+                break
 
-    def v1_providers(self):
-        provider_list = []
-        for provider in __providers__:
-            provider_list.append({
-                'id': provider.__name__,
-                'object': 'provider',
-                'url': provider.url,
-                'working': provider.working,
-                'needs_auth': provider.needs_auth,
-                'supports_gpt_4': provider.supports_gpt_4,
-                'supports_gpt_35_turbo': provider.supports_gpt_35_turbo,
-                'supports_stream': provider.supports_stream,
-                'supports_message_history': provider.supports_message_history,
-            })
-        return self.responseJson({
-            'object': 'list',
-            'data': provider_list})
-    
-    def v1_providers_info(self, provider_name: str):
-        try:
-            provider = (g4f.ProviderUtils.convert[provider_name])
-            return self.responseJson({
-                'id': provider.__name__,
-                'object': 'provider',
-                'url': provider.url,
-                'working': provider.working,
-                'supports_message_history': provider.supports_message_history,
-                'supports_gpt_4': provider.supports_gpt_4,
-                'supports_gpt_35_turbo': provider.supports_gpt_35_turbo,
-                'supports_stream': provider.supports_stream,
-            })
-        except Exception:
-            return self.responseJson({
-                "error": {
-                    "message": "The provider does not exist.",
-                    "type": "invalid_request_error",
-                    "param": "null",
-                    "code": "null",
-                }
-            }, status=500)
+    def _prepare_conversation_kwargs(self, json_data: dict, kwargs: dict):
+        """
+        Prepares arguments for chat completion based on the request data.
 
-    def v1_chat_completions(self):
-        if request.method == 'GET':
-            return self.responseJson({
-                "error": {
-                    "message":
-                    "You must use POST to access this endpoint.",
-                    "type": "invalid_request_error",
-                    "param": "null",
-                    "code": "null",
-                }
-            }, status=501)
-        kwargs = {}
-        item = request.get_json()
-        item_data = {
-            'model': g4f.models.default,
-        }
-        item_data.update({
-            key.decode('utf-8')
-            if isinstance(key, bytes) else key: str(value)
-            for key, value in (item or {}).items()
-        })
-        if isinstance(item_data.get('messages'), str):
-            item_data['messages'] = ast.literal_eval(
-                item_data.get('messages'))
+        Reads the request and prepares the necessary arguments for handling 
+        a chat completion request.
 
-        if 'image' in request.files:
-            file = request.files['image']
-            if file.filename != '' and is_allowed_extension(file.filename):
-                kwargs['image'] = to_image(file.stream)
-
-        if item_data.get('image'):
-            kwargs['image'] = to_image(item_data.get('image'))
-
-        model = item_data.get('model')
-        stream = True if item_data.get("stream") == "True" else False
-        messages = item_data.get('messages')
-        envprovider = self.env.get('provider') if self.env.get(
-            'provider') else item_data.get('provider', '')
-        provider = envprovider.replace('g4f.Provider.', '')
-        provider = provider if provider and provider != "Auto" else None
+        Returns:
+            dict: Arguments prepared for chat completion.
+        """ 
+        provider = json_data.get('provider', None)
+        if "image" in kwargs and provider is None:
+            provider = "Bing"
         if provider == 'OpenaiChat':
             kwargs['auto_continue'] = True
-        if item_data.get('web_search') or self.env.get('web_search'):
+
+        messages = json_data['messages']
+        if json_data.get('web_search'):
             if provider == "Bing":
                 kwargs['web_search'] = True
             else:
-                messages[-1]["content"] = get_search_message(
-                    messages[-1]["content"])
-        patch = patch_provider if item_data.get('patch_provider') else None
-        auth = item_data.get('auth', None)
-        ignore_stream_and_auth = item_data.get('ignore_stream_and_auth', False)
-        ignore_working = item_data.get('ignore_working', False)
-        temperature = item_data.get('temperature')
+                from .internet import get_search_message
+                messages[-1]["content"] = get_search_message(messages[-1]["content"])
 
+        conversation_id = json_data.get("conversation_id")
+        if conversation_id and conversation_id in conversations:
+            kwargs["conversation"] = conversations[conversation_id]
+
+        model = json_data.get('model')
+        model = model if model else models.default
+        patch = patch_provider if json_data.get('patch_provider') else None
+
+        return {
+            "model": model,
+            "provider": provider,
+            "messages": messages,
+            "stream": True,
+            "ignore_stream": True,
+            "patch_provider": patch,
+            "return_conversation": True,
+            **kwargs
+        }
+
+    def _create_response_stream(self, kwargs, conversation_id: str) -> Iterator:
+        """
+        Creates and returns a streaming response for the conversation.
+
+        Args:
+            kwargs (dict): Arguments for creating the chat completion.
+
+        Yields:
+            str: JSON formatted response chunks for the stream.
+
+        Raises:
+            Exception: If an error occurs during the streaming process.
+        """
         try:
-            response = g4f.ChatCompletion.create(
-                model=model,
-                stream=stream,
-                messages=messages,
-                temperature=temperature,
-                provider=provider,
-                proxy=self.env.get('proxy', None),
-                socks5=self.env.get('socks5', None),
-                time=self.env.get('timeout', 120),
-                patch_provider=patch,
-                auth=auth,
-                ignore_stream_and_auth=ignore_stream_and_auth,
-                ignore_working=ignore_working,
-                ignored=self.list_ignored_providers,
-                **kwargs
-            )
+            first = True
+            for chunk in ChatCompletion.create(**kwargs):
+                if first:
+                    first = False
+                    yield self._format_json("provider", get_last_provider(True))
+                if isinstance(chunk, Conversation):
+                    conversations[conversation_id] = chunk
+                    yield self._format_json("conversation", conversation_id)
+                elif isinstance(chunk, Exception):
+                    logging.exception(chunk)
+                    yield self._format_json("message", get_error_message(chunk))
+                else:
+                    yield self._format_json("content", chunk)
         except Exception as e:
             logging.exception(e)
-            return self.responseJson({
-                "error": {
-                    "message":
-                    f"An error occurred while generating the response:\n{e}"
-                },
-                "model": model,
-                "provider": g4f.get_last_provider(True)
-            }, status=500)
+            yield self._format_json('error', get_error_message(e))
 
-        completion_id = ''.join(random.choices(
-            string.ascii_letters + string.digits, k=28))
-        completion_timestamp = int(time.time())
+    def _format_json(self, response_type: str, content):
+        """
+        Formats and returns a JSON response.
 
-        if not stream:
-            json_data = {
-                'id': f'chatcmpl-{completion_id}',
-                'object': 'chat.completion',
-                'created': completion_timestamp,
-                'model': model,
-                'provider': g4f.get_last_provider(True),
-                'choices': [
-                    {
-                        'index': 0,
-                        'message': {
-                            'role': 'assistant',
-                            'content': response,
-                        },
-                        'finish_reason': 'stop',
-                    }
-                ],
-                'usage': {
-                    'prompt_tokens': 0,
-                    'completion_tokens': 0,
-                    'total_tokens': 0,
-                },
-            }
+        Args:
+            response_type (str): The type of the response.
+            content: The content to be included in the response.
 
-            return self.responseJson(
-                json_data,
-                content_type="application/json"
-            )
+        Returns:
+            str: A JSON formatted string.
+        """
+        return {
+            'type': response_type,
+            response_type: content
+        }
+    
+def get_error_message(exception: Exception) -> str:
+    """
+    Generates a formatted error message from an exception.
 
-        def streaming():
-            try:
-                for chunk in response:
-                    completion_data = {
-                        'id': f'chatcmpl-{completion_id}',
-                        'object': 'chat.completion.chunk',
-                        'created': completion_timestamp,
-                        'model': model,
-                        'provider': g4f.get_last_provider(True),
-                        'choices': [
-                            {
-                                'index': 0,
-                                'delta': {
-                                    'content': chunk,
-                                },
-                                'finish_reason': None,
-                            }
-                        ],
-                    }
-                    yield f'data: {json.dumps(completion_data)}\n'
+    Args:
+        exception (Exception): The exception to format.
 
-                end_completion_data = {
-                    'id': f'chatcmpl-{completion_id}',
-                    'object': 'chat.completion.chunk',
-                    'created': completion_timestamp,
-                    'model': model,
-                    'provider': g4f.get_last_provider(True),
-                    'choices': [
-                        {
-                            'index': 0,
-                            'delta': {},
-                            'finish_reason': 'stop',
-                        }
-                    ],
-                }
-                yield f'data: {json.dumps(end_completion_data)}\n'
-
-            except GeneratorExit:
-                pass
-            except Exception as e:
-                logging.exception(e)
-                content = json.dumps({
-                    "error": {
-                        "message": f"An error occurred while generating the response:\n{e}"
-                    },
-                    "model": model,
-                    "provider": g4f.get_last_provider(True),
-                })
-                yield f'data: {content}'
-
-        return Response(
-            streaming(),
-            content_type='text/event-stream'
-        )
-
-    def v1_completions(self):
-        return self.responseJson({'info': 'Not working yet.'})
-
-    def responseJson(self, response,
-                     content_type="application/json", status=200):
-        return Response(
-            json.dumps(response, indent=4),
-            content_type=content_type,
-            status=status)
+    Returns:
+        str: A formatted error message string.
+    """
+    return f"{get_last_provider().__name__}: {type(exception).__name__}: {exception}"

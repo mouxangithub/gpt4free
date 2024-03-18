@@ -2,17 +2,19 @@ from __future__ import annotations
 
 import base64
 import json
-from aiohttp import ClientSession
+from aiohttp import ClientSession, BaseConnector
 
 from ..typing import AsyncResult, Messages, ImageType
 from .base_provider import AsyncGeneratorProvider, ProviderModelMixin
 from ..image import to_bytes, is_accepted_format
 from ..errors import MissingAuthError
+from .helper import get_connector
 
 class GeminiPro(AsyncGeneratorProvider, ProviderModelMixin):
     url = "https://ai.google.dev"
     working = True
     supports_message_history = True
+    needs_auth = True
     default_model = "gemini-pro"
     models = ["gemini-pro", "gemini-pro-vision"]
 
@@ -24,27 +26,35 @@ class GeminiPro(AsyncGeneratorProvider, ProviderModelMixin):
         stream: bool = False,
         proxy: str = None,
         api_key: str = None,
+        api_base: str = "https://generativelanguage.googleapis.com/v1beta",
+        use_auth_header: bool = False,
         image: ImageType = None,
+        connector: BaseConnector = None,
         **kwargs
     ) -> AsyncResult:
-        model = "gemini-pro-vision" if not model and image else model
+        model = "gemini-pro-vision" if not model and image is not None else model
         model = cls.get_model(model)
+
         if not api_key:
-            raise MissingAuthError('Missing "api_key" for auth')
-        headers = {
-            "Content-Type": "application/json",
-        }
-        async with ClientSession(headers=headers) as session:
-            method = "streamGenerateContent" if stream else "generateContent"
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:{method}"
+            raise MissingAuthError('Missing "api_key"')
+
+        headers = params = None
+        if use_auth_header:
+            headers = {"Authorization": f"Bearer {api_key}"}
+        else:
+            params = {"key": api_key}
+
+        method = "streamGenerateContent" if stream else "generateContent"
+        url = f"{api_base.rstrip('/')}/models/{model}:{method}"
+        async with ClientSession(headers=headers, connector=get_connector(connector, proxy)) as session:
             contents = [
                 {
-                    "role": "model" if message["role"] == "assistant" else message["role"],
+                    "role": "model" if message["role"] == "assistant" else "user",
                     "parts": [{"text": message["content"]}]
                 }
                 for message in messages
             ]
-            if image:
+            if image is not None:
                 image = to_bytes(image)
                 contents[-1]["parts"].append({
                     "inline_data": {
@@ -62,10 +72,11 @@ class GeminiPro(AsyncGeneratorProvider, ProviderModelMixin):
                     "topK": kwargs.get("top_k"),
                 }
             }
-            async with session.post(url, params={"key": api_key}, json=data, proxy=proxy) as response:
+            async with session.post(url, params=params, json=data) as response:
                 if not response.ok:
                     data = await response.json()
-                    raise RuntimeError(data[0]["error"]["message"])
+                    data = data[0] if isinstance(data, list) else data
+                    raise RuntimeError(data["error"]["message"])
                 if stream:
                     lines = []
                     async for chunk in response.content:
@@ -78,7 +89,7 @@ class GeminiPro(AsyncGeneratorProvider, ProviderModelMixin):
                                 yield data["candidates"][0]["content"]["parts"][0]["text"]
                             except:
                                 data = data.decode() if isinstance(data, bytes) else data
-                                raise RuntimeError(f"Read text failed. data: {data}")
+                                raise RuntimeError(f"Read chunk failed: {data}")
                             lines = []
                         else:
                             lines.append(chunk)

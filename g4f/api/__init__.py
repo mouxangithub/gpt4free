@@ -85,10 +85,11 @@ class Api:
                 if config.api_key is None and request is not None:
                     auth_header = request.headers.get("Authorization")
                     if auth_header is not None:
-                        config.api_key = auth_header.split(None, 1)[-1]
-
+                        auth_header = auth_header.split(None, 1)[-1]
+                        if auth_header and auth_header != "Bearer":
+                            config.api_key = auth_header
                 response = self.client.chat.completions.create(
-                    **dict(config),
+                    **config.dict(exclude_none=True),
                     ignored=self.list_ignored_providers
                 )
             except Exception as e:
@@ -114,14 +115,14 @@ class Api:
         async def completions():
             return Response(content=json.dumps({'info': 'Not working yet.'}, indent=4), media_type="application/json")
 
-    def run(self, ip):
+    def run(self, ip, use_colors : bool = False):
         split_ip = ip.split(":")
-        uvicorn.run(app=self.app, host=split_ip[0], port=int(split_ip[1]), use_colors=False)
+        uvicorn.run(app=self.app, host=split_ip[0], port=int(split_ip[1]), use_colors=use_colors)
 
 def format_exception(e: Exception, config: ChatCompletionsConfig) -> str:
     last_provider = g4f.get_last_provider(True)
     return json.dumps({
-        "error": {"message": f"ChatCompletionsError: {e.__class__.__name__}: {e}"},
+        "error": {"message": f"{e.__class__.__name__}: {e}"},
         "model": last_provider.get("model") if last_provider else config.model,
         "provider": last_provider.get("name") if last_provider else config.provider
     })
@@ -129,4 +130,4 @@ def format_exception(e: Exception, config: ChatCompletionsConfig) -> str:
 def run_api(host: str = '0.0.0.0', port: int = 1337, debug: bool = False, use_colors=True) -> None:
     print(f'Starting server... [g4f v-{g4f.version.utils.current_version}]')
     app = Api(engine=g4f, debug=debug)
-    uvicorn.run(app=app, host=host, port=port, use_colors=use_colors)
+    app.run(f"{host}:{port}", use_colors=use_colors)

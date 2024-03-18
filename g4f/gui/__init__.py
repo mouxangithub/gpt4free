@@ -1,17 +1,16 @@
 import os
-from .server.app import app
-from .server.api import Api
-from .server.website import Website
-from .server.backend import Backend_Api
-from typing import List
+
+from ..errors import MissingRequirementsError
 
 
-def run_gui(host: str = '0.0.0.0',
-            port: int = 80,
-            debug: bool = False,
-            apiStatus: bool = False,
-            list_ignored_providers: List[str] = None
-            ) -> None:
+def run_gui(host: str = '0.0.0.0', port: int = 8080, debug: bool = False) -> None:
+    try:
+        from .server.app import app
+        from .server.api import Api
+        from .server.website import Website
+        from .server.backend import Backend_Api
+    except ImportError:
+        raise MissingRequirementsError('Install "flask" package for the gui')
     if debug:
         import g4f
         g4f.debug.logging = True

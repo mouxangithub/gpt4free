@@ -7,17 +7,19 @@ import random
 import string
 
 from .stubs import ChatCompletion, ChatCompletionChunk, Image, ImagesResponse
-from .typing import Union, Generator, Messages, ImageType
+from .typing import Union, Iterator, Messages, ImageType
 from .providers.types import BaseProvider, ProviderType
 from .image import ImageResponse as ImageProviderResponse
+from .errors import NoImageResponseError, RateLimitError, MissingAuthError
+from . import get_model_and_provider, get_last_provider
+
 from .Provider.BingCreateImages import BingCreateImages
 from .Provider.needs_auth import Gemini, OpenaiChat
-from .errors import NoImageResponseError
-from . import get_model_and_provider, get_last_provider
+from .Provider.You import You
 
 ImageProvider = Union[BaseProvider, object]
 Proxies = Union[dict, str]
-IterResponse = Generator[Union[ChatCompletion, ChatCompletionChunk], None, None]
+IterResponse = Iterator[Union[ChatCompletion, ChatCompletionChunk]]
 
 def read_json(text: str) -> dict:
     """
@@ -110,6 +112,12 @@ class Client():
         elif "https" in self.proxies:
             return self.proxies["https"]
 
+def filter_none(**kwargs):
+    for key in list(kwargs.keys()):
+        if kwargs[key] is None:
+            del kwargs[key]
+    return kwargs
+
 class Completions():
     def __init__(self, client: Client, provider: ProviderType = None):
         self.client: Client = client
@@ -125,21 +133,29 @@ class Completions():
         max_tokens: int = None,
         stop: Union[list[str], str] = None,
         api_key: str = None,
+        ignored  : list[str] = None,
+        ignore_working: bool = False,
+        ignore_stream: bool = False,
         **kwargs
-    ) -> Union[ChatCompletion, Generator[ChatCompletionChunk]]:
+    ) -> Union[ChatCompletion, Iterator[ChatCompletionChunk]]:
         model, provider = get_model_and_provider(
             model,
             self.provider if provider is None else provider,
             stream,
+            ignored,
+            ignore_working,
+            ignore_stream,
             **kwargs
         )
         stop = [stop] if isinstance(stop, str) else stop
         response = provider.create_completion(
-            model, messages, stream,
-            proxy=self.client.get_proxy(),
-            max_tokens=max_tokens,
-            stop=stop,
-            api_key=self.client.api_key if api_key is None else api_key,
+            model, messages, stream,            
+            **filter_none(
+                proxy=self.client.get_proxy(),
+                max_tokens=max_tokens,
+                stop=stop,
+                api_key=self.client.api_key if api_key is None else api_key
+            ),
             **kwargs
         )
         response = iter_response(response, stream, response_format, max_tokens, stop)
@@ -155,6 +171,7 @@ class Chat():
 class ImageModels():
     gemini = Gemini
     openai = OpenaiChat
+    you = You
 
     def __init__(self, client: Client) -> None:
         self.client = client
@@ -163,31 +180,44 @@ class ImageModels():
     def get(self, name: str, default: ImageProvider = None) -> ImageProvider:
         return getattr(self, name) if hasattr(self, name) else default or self.default
 
+def iter_image_response(response: Iterator) -> Union[ImagesResponse, None]:
+    for chunk in list(response):
+        if isinstance(chunk, ImageProviderResponse):
+            return ImagesResponse([Image(image) for image in chunk.get_list()])
+
+def create_image(client: Client, provider: ProviderType, prompt: str, model: str = "", **kwargs) -> Iterator:
+    prompt = f"create a image with: {prompt}"
+    return provider.create_completion(
+        model,
+        [{"role": "user", "content": prompt}],
+        True,
+        proxy=client.get_proxy(),
+        **kwargs
+    )
+
 class Images():
     def __init__(self, client: Client, provider: ImageProvider = None):
         self.client: Client = client
         self.provider: ImageProvider = provider
         self.models: ImageModels = ImageModels(client)
 
-    def generate(self, prompt, model: str = None, **kwargs):
+    def generate(self, prompt, model: str = None, **kwargs) -> ImagesResponse:
         provider = self.models.get(model, self.provider)
-        if isinstance(provider, BaseProvider) or isinstance(provider, type) and issubclass(provider, BaseProvider):
-            prompt = f"create a image: {prompt}"
-            response = provider.create_completion(
-                "",
-                [{"role": "user", "content": prompt}],
-                True,
-                proxy=self.client.get_proxy(),
-                **kwargs
-            )
+        if isinstance(provider, type) and issubclass(provider, BaseProvider):
+            response = create_image(self.client, provider, prompt, **kwargs)
         else:
-            response = provider.create(prompt)
-
-        for chunk in response:
-            if isinstance(chunk, ImageProviderResponse):
-                images = [chunk.images] if isinstance(chunk.images, str) else chunk.images
-                return ImagesResponse([Image(image) for image in images])
-        raise NoImageResponseError()
+            try:
+                response = list(provider.create(prompt))
+            except (RateLimitError, MissingAuthError) as e:
+                # Fallback for default provider
+                if self.provider is None:
+                    response = create_image(self.client, self.models.you, prompt, model or "dall-e", **kwargs)
+                else:
+                    raise e
+        image = iter_image_response(response)
+        if image is None:
+            raise NoImageResponseError()
+        return image
 
     def create_variation(self, image: ImageType, model: str = None, **kwargs):
         provider = self.models.get(model, self.provider)
