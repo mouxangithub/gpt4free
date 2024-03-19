@@ -10,13 +10,16 @@ from functools import partial
 try:
     import webview
     import platformdirs
-except ImportError:
-    ...
-try:
     from plyer import camera
     from plyer import filechooser
+    app_storage_path = platformdirs.user_pictures_dir
+    user_select_image = partial(
+        filechooser.open_file,
+        path=platformdirs.user_pictures_dir(),
+        filters=[["Image", "*.jpg", "*.jpeg", "*.png", "*.webp", "*.svg"]],
+    )
     has_plyer = True
-except ImportError:
+except (ImportError, NameError):
     has_plyer = False
 try:
     from android.runnable import run_on_ui_thread
@@ -28,12 +31,6 @@ try:
     has_android = True
 except ImportError:
     run_on_ui_thread = lambda a : a
-    app_storage_path = platformdirs.user_pictures_dir
-    user_select_image = partial(
-        filechooser.open_file,
-        path=platformdirs.user_pictures_dir(),
-        filters=[["Image", "*.jpg", "*.jpeg", "*.png", "*.webp", "*.svg"]],
-    )
     has_android = False
 
 from g4f import version, models
