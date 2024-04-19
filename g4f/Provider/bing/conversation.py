@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from aiohttp import ClientSession
 from ...requests import raise_for_status
+from ...errors import RateLimitError
+from ...providers.conversation import BaseConversation
 
-class Conversation:
+class Conversation(BaseConversation):
     """
     Represents a conversation with specific attributes.
     """
@@ -31,11 +33,13 @@ async def create_conversation(session: ClientSession, headers: dict, tone: str) 
     Returns:
     Conversation: An instance representing the created conversation.
     """
-    if tone == "copilot":
-        url = "https://copilot.microsoft.com/turing/conversation/create?bundleVersion=1.1634.3-nodesign2"
+    if tone == "Copilot":
+        url = "https://copilot.microsoft.com/turing/conversation/create?bundleVersion=1.1690.0"
     else:
-        url = "https://www.bing.com/turing/conversation/create?bundleVersion=1.1626.1"
+        url = "https://www.bing.com/turing/conversation/create?bundleVersion=1.1690.0"
     async with session.get(url, headers=headers) as response:
+        if response.status == 404:
+            raise RateLimitError("Response 404: Do less requests and reuse conversations")
         await raise_for_status(response, "Failed to create conversation")
         data = await response.json()
     conversationId = data.get('conversationId')

@@ -1,30 +1,38 @@
 from __future__ import annotations
 
 import json
-
+import requests
 from aiohttp import ClientSession, BaseConnector
 
 from ..typing import AsyncResult, Messages
+from ..requests.raise_for_status import raise_for_status
 from .base_provider import AsyncGeneratorProvider, ProviderModelMixin
 from .helper import format_prompt, get_connector
-
 
 class HuggingChat(AsyncGeneratorProvider, ProviderModelMixin):
     url = "https://huggingface.co/chat"
     working = True
-    default_model = "meta-llama/Llama-2-70b-chat-hf"
+    default_model = "mistralai/Mixtral-8x7B-Instruct-v0.1"
     models = [
-        "mistralai/Mixtral-8x7B-Instruct-v0.1",
-        "meta-llama/Llama-2-70b-chat-hf",
-        "NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO",
-        "codellama/CodeLlama-34b-Instruct-hf",
-        "mistralai/Mistral-7B-Instruct-v0.2",
-        "openchat/openchat-3.5-0106",
-        "codellama/CodeLlama-70b-Instruct-hf"
+        "HuggingFaceH4/zephyr-orpo-141b-A35b-v0.1",
+        'CohereForAI/c4ai-command-r-plus',
+        'mistralai/Mixtral-8x7B-Instruct-v0.1',
+        'google/gemma-1.1-7b-it',
+        'NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO',
+        'mistralai/Mistral-7B-Instruct-v0.2'
     ]
     model_aliases = {
-        "openchat/openchat_3.5": "openchat/openchat-3.5-1210",
+        "openchat/openchat_3.5": "openchat/openchat-3.5-0106",
     }
+
+    @classmethod
+    def get_models(cls):
+        if not cls.models:
+            url = f"{cls.url}/__data.json"
+            data = requests.get(url).json()["nodes"][0]["data"]
+            models = [data[key]["name"] for key in data[data[0]["models"]]]
+            cls.models = [data[key] for key in models]
+        return cls.models
 
     @classmethod
     async def create_async_generator(
@@ -39,6 +47,7 @@ class HuggingChat(AsyncGeneratorProvider, ProviderModelMixin):
         **kwargs
     ) -> AsyncResult:
         options = {"model": cls.get_model(model)}
+
         system_prompt = "\n".join([message["content"] for message in messages if message["role"] == "system"])
         if system_prompt:
             options["preprompt"] = system_prompt
@@ -51,11 +60,11 @@ class HuggingChat(AsyncGeneratorProvider, ProviderModelMixin):
             headers=headers,
             connector=get_connector(connector, proxy)
         ) as session:
-            async with session.post(f"{cls.url}/conversation", json=options, proxy=proxy) as response:
-                response.raise_for_status()
+            async with session.post(f"{cls.url}/conversation", json=options) as response:
+                await raise_for_status(response)
                 conversation_id = (await response.json())["conversationId"]
             async with session.get(f"{cls.url}/conversation/{conversation_id}/__data.json") as response:
-                response.raise_for_status()
+                await raise_for_status(response)
                 data: list = (await response.json())["nodes"][1]["data"]
                 keys: list[int] = data[data[0]["messages"]]
                 message_keys: dict = data[keys[0]]
@@ -70,7 +79,7 @@ class HuggingChat(AsyncGeneratorProvider, ProviderModelMixin):
             async with session.post(f"{cls.url}/conversation/{conversation_id}", json=options) as response:
                 first_token = True
                 async for line in response.content:
-                    response.raise_for_status()
+                    await raise_for_status(response)
                     line = json.loads(line)
                     if "type" not in line:
                         raise RuntimeError(f"Response: {line}")
@@ -82,5 +91,5 @@ class HuggingChat(AsyncGeneratorProvider, ProviderModelMixin):
                         yield token
                     elif line["type"] == "finalAnswer":
                         break
-            async with session.delete(f"{cls.url}/conversation/{conversation_id}", proxy=proxy) as response:
-                response.raise_for_status()
+            async with session.delete(f"{cls.url}/conversation/{conversation_id}") as response:
+                await raise_for_status(response)

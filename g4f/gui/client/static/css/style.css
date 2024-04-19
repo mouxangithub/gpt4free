@@ -84,15 +84,17 @@ body {
 }
 
 body {
-    padding: var(--section-gap);
+    padding: 10px;
     background: var(--colour-1);
     color: var(--colour-3);
     height: 100vh;
+    max-width: 1600px;
+    margin: auto;
 }
 
 .row {
     display: flex;
-    gap: var(--section-gap);
+    gap: 10px;
     height: 100%;
 }
 
@@ -106,12 +108,8 @@ body {
     border: 1px solid var(--blur-border);
 }
 
-.hidden {
-    display: none;
-}
-
 .conversations {
-    max-width: 260px;
+    max-width: 300px;
     padding: var(--section-gap);
     overflow: auto;
     flex-shrink: 0;
@@ -138,8 +136,7 @@ body {
 }
 
 .conversation .user-input {
-    max-height: 200px;
-    margin-bottom: 10px;
+    margin-bottom: 4px;
 }
 
 .conversation .user-input input {
@@ -183,8 +180,8 @@ body {
 .conversations {
     display: flex;
     flex-direction: column;
-    gap: var(--inner-gap);
-    padding: var(--inner-gap);
+    gap: 10px;
+    padding: 10px;
 }
 
 .conversations .title {
@@ -204,10 +201,16 @@ body {
 }
 
 .conversations .convo .left {
+    width: 100%;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 4px;
+}
+
+.conversations .convo .fa-ellipsis-vertical {
+    position: absolute;
+    right: 14px;
 }
 
 .conversations .convo .choise {
@@ -216,7 +219,7 @@ body {
     background-color: var(--blur-bg);
 }
 
-.conversations i {
+.conversations i, .bottom_buttons i {
     color: var(--conversations);
     cursor: pointer;
 }
@@ -224,15 +227,22 @@ body {
 .convo-title {
     color: var(--colour-3);
     font-size: 14px;
+    max-width: 100%;
     text-overflow: ellipsis;
     overflow: hidden; 
     white-space: nowrap;
+    margin-right: 10px;
+}
+
+.convo-title .datetime {
+    font-size: 10px;
 }
 
 .message {
     width: 100%;
     overflow-wrap: break-word;
     display: flex;
+    flex-direction: column;
     gap: var(--section-gap);
     padding: var(--inner-gap) var(--section-gap);
     padding-bottom: 0;
@@ -309,6 +319,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    flex-wrap: wrap;
 }
 
 .message .content,
@@ -324,6 +335,10 @@ body {
 
 .message .content img{
     max-width: 400px;
+}
+
+.message .content .audio{
+    display: flex;
 }
 
 .message .user i {
@@ -351,8 +366,26 @@ body {
     cursor: pointer;
 }
 
+.message .count .fa-clipboard,
+.message .count .fa-volume-high {
+    z-index: 1000;
+    cursor: pointer;
+}
+
 .message .user .fa-xmark {
     color: var(--colour-1);
+}
+
+.message .count .fa-clipboard {
+    color: var(--colour-3);
+}
+
+.message .count .fa-clipboard.clicked {
+    color: var(--accent);
+}
+
+.message .count .fa-volume-high.active {
+    color: var(--accent);
 }
 
 .message .assistant:hover .fa-xmark,
@@ -376,7 +409,7 @@ body {
 
 .count_total {
     font-size: 12px;
-    padding-left: 100px;
+    padding-left: 25px;
     padding-top: 10px;
 }
 
@@ -482,34 +515,30 @@ body {
     display: none;
 }
 
-label[for="image"]:has(> input:valid){
-    color: var(--accent);
-}
-
-label[for="camera"]:has(> input:valid){
-    color: var(--accent);
-}
-
-label[for="file"]:has(> input:valid){
-    color: var(--accent);
-}
-
-label[for="image"], label[for="file"], label[for="camera"] {
+.file-label,
+.micro-label {
     cursor: pointer;
     position: absolute;
     top: 10px;
     left: 10px;
 }
 
+.file-label:has(> input:valid),
+.file-label.selected,
+.micro-label.recognition {
+    color: var(--accent);
+}
+
 label[for="image"] {
     top: 32px;
 }
 
-label[for="camera"] {
+label[for="micro"] {
     top: 54px;
 }
 
 label[for="camera"] {
+    top: 74px;
     display: none;
 }
 
@@ -519,13 +548,15 @@ label[for="camera"] {
     }
 }
 
-.buttons input[type="checkbox"] {
+.buttons input[type="checkbox"],
+.settings input[type="checkbox"] {
     height: 0;
     width: 0;
     display: none;
 }
 
-.buttons label {
+.buttons label,
+.settings label.toogle {
     cursor: pointer;
     text-indent: -9999px;
     width: 50px;
@@ -542,7 +573,8 @@ label[for="camera"] {
     transition: 0.33s;
 }
 
-.buttons label:after {
+.buttons label:after,
+.settings label.toogle:after {
     content: "";
     position: absolute;
     top: 50%;
@@ -555,11 +587,23 @@ label[for="camera"] {
     transition: 0.33s;
 }
 
-.buttons input:checked+label {
+.buttons input:checked+label,
+.settings input:checked+label {
     background: var(--accent);
 }
 
-.buttons input:checked+label:after {
+.settings .bottom_buttons {
+    flex-direction: column;
+}
+
+.settings .bottom_buttons button {
+    display: inline-block;
+    max-width: 210px;
+    width: 100%;
+}
+
+.buttons input:checked+label:after,
+.settings input:checked+label:after {
     left: calc(100% - 5px - 20px);
 }
 
@@ -568,6 +612,7 @@ label[for="camera"] {
     align-items: center;
     justify-content: left;
     width: 100%;
+    margin-bottom: 4px;
 }
 
 .field {
@@ -605,12 +650,36 @@ select {
     width: 160px;
 }
 
+#systemPrompt, .settings textarea {
+    font-size: 15px;
+    width: 100%;
+    color: var(--colour-3);
+    min-height: 49px;
+    height: 59px;
+    outline: none;
+    padding: var(--inner-gap) var(--section-gap);
+    resize: vertical;
+}
+
+#systemPrompt {
+    padding-left: 35px;
+}
+
 @media only screen and (min-width: 40em) {
     select {
         width: 200px;
     }
     .field {
         padding-right: 15px
+    }
+    .message {
+        flex-direction: row;
+    }
+    .settings .bottom_buttons {
+        flex-direction: row;
+    }
+    .count_total {
+        padding-left: 98px;
     }
 }
 
@@ -638,6 +707,7 @@ select {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin: 4px 0;
 }
 
 .bottom_buttons button {
@@ -740,7 +810,7 @@ ul {
 }
 
 .mobile-sidebar {
-    display: none !important;
+    display: none;
     position: absolute;
     z-index: 100000;
     top: 0;
@@ -768,11 +838,20 @@ ul {
     transform: rotate(360deg);
 }
 
+.settings h3 {
+    padding-left: 10px;
+    padding-top: 10px;
+}
+
 @media screen and (max-width: 990px) {
     .conversations {
         display: none;
         width: 100%;
         max-width: none;
+    }
+
+    .settings h3 {
+        padding-left: 50px;
     }
 
     .buttons {
@@ -781,12 +860,12 @@ ul {
         gap: 15px;
     }
 
-    .field {
-        width: fit-content;
+    .mobile-sidebar {
+        display: flex;
     }
 
-    .mobile-sidebar {
-        display: flex !important;
+    #systemPrompt {
+        padding-left: 48px;
     }
 }
 
@@ -810,7 +889,7 @@ a:-webkit-any-link {
     color: var(--colour-3);
 
     resize: vertical;
-    max-height: 150px;
+    max-height: 200px;
     min-height: 80px;
 }
 
@@ -882,7 +961,6 @@ a:-webkit-any-link {
     white-space: nowrap;
     width: 1px;
 }
-
 
 .color-picker>fieldset {
     border: 0;
@@ -1017,13 +1095,98 @@ a:-webkit-any-link {
     border: 1px solid #e4d4ffc9;
 }
 
-#systemPrompt {
+.settings textarea {
+    height: 19px;
+    min-height: 19px;
+    padding: 0;
+}
+
+.settings .field.box {
+    padding: var(--inner-gap) var(--inner-gap) var(--inner-gap) 0;
+}
+
+.settings, .images {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.settings .paper {
+    flex-direction: column;
+    min-width: 400px;
+}
+
+.settings .field {
+    margin: var(--inner-gap) 0;
+}
+
+.settings textarea {
+    background-color: transparent;
+    border: none;
+}
+
+.settings input {
+    background-color: transparent;
+    padding: 2px;
+    border: none;
     font-size: 15px;
     width: 100%;
     color: var(--colour-3);
-    min-height: 59px;
-    height: 59px;
+}
+
+.settings input:focus {
     outline: none;
-    padding: var(--inner-gap) var(--section-gap);
-    resize: vertical;
+}
+
+.settings .label {
+    font-size: 15px;
+    margin-left: var(--inner-gap);
+    white-space:nowrap;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+::-webkit-scrollbar-track {
+    background: var(--colour-3);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--blur-bg);
+    border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+.hljs {
+    color: #e9e9f4;
+    background: #28293629;
+    border-radius: var(--border-radius-1);
+    border: 1px solid var(--blur-border);
+    font-size: 15px;
+}
+
+#message-input {
+    height: 90px;
+    margin-left: 20px;
+    max-height: 200px;
+}
+
+#message-input::-webkit-scrollbar {
+    width: 5px;
+}
+
+.hidden {
+    display: none;
+}
+
+.blink {
+    animation: blinker 1s step-start infinite;
+}
+
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
 }

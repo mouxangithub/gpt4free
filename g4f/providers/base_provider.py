@@ -6,8 +6,9 @@ from asyncio import AbstractEventLoop
 from concurrent.futures import ThreadPoolExecutor
 from abc import abstractmethod
 from inspect import signature, Parameter
-from ..typing import CreateResult, AsyncResult, Messages, Union
-from .types import BaseProvider
+from typing import Callable, Union
+from ..typing import CreateResult, AsyncResult, Messages
+from .types import BaseProvider, FinishReason
 from ..errors import NestAsyncioError, ModelNotSupportedError
 from .. import debug
 
@@ -18,19 +19,30 @@ else:
 
 # Set Windows event loop policy for better compatibility with asyncio and curl_cffi
 if sys.platform == 'win32':
-    if isinstance(asyncio.get_event_loop_policy(), asyncio.WindowsProactorEventLoopPolicy):
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    try:
+        from curl_cffi import aio
+        if not hasattr(aio, "_get_selector"):
+            if isinstance(asyncio.get_event_loop_policy(), asyncio.WindowsProactorEventLoopPolicy):
+                asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    except ImportError:
+        pass
 
-def get_running_loop() -> Union[AbstractEventLoop, None]:
+def get_running_loop(check_nested: bool) -> Union[AbstractEventLoop, None]:
     try:
         loop = asyncio.get_running_loop()
-        if not hasattr(loop.__class__, "_nest_patched"):
-            raise NestAsyncioError(
-                'Use "create_async" instead of "create" function in a running event loop. Or use "nest_asyncio" package.'
-            )
+        if check_nested and not hasattr(loop.__class__, "_nest_patched"):
+            try:
+                import nest_asyncio
+                nest_asyncio.apply(loop)
+            except ImportError:
+                raise NestAsyncioError('Install "nest_asyncio" package')
         return loop
     except RuntimeError:
         pass
+
+# Fix for RuntimeError: async generator ignored GeneratorExit
+async def await_callback(callback: Callable):
+    return await callback()
 
 class AbstractProvider(BaseProvider):
     """
@@ -71,6 +83,7 @@ class AbstractProvider(BaseProvider):
             timeout=kwargs.get("timeout")
         )
 
+    @classmethod
     def get_parameters(cls) -> dict:
         return signature(
             cls.create_async_generator if issubclass(cls, AsyncGeneratorProvider) else
@@ -100,7 +113,9 @@ class AbstractProvider(BaseProvider):
                 continue
             args += f"\n    {name}"
             args += f": {get_type_name(param.annotation)}" if param.annotation is not Parameter.empty else ""
-            args += f' = "{param.default}"' if param.default == "" else f" = {param.default}" if param.default is not Parameter.empty else ""
+            default_value = f'"{param.default}"' if isinstance(param.default, str) else param.default
+            args += f" = {default_value}" if param.default is not Parameter.empty else ""
+            args += ","
         
         return f"g4f.Provider.{cls.__name__} supports: ({args}\n)"
 
@@ -132,7 +147,7 @@ class AsyncProvider(AbstractProvider):
         Returns:
             CreateResult: The result of the completion creation.
         """
-        get_running_loop()
+        get_running_loop(check_nested=True)
         yield asyncio.run(cls.create_async(model, messages, **kwargs))
 
     @staticmethod
@@ -157,7 +172,6 @@ class AsyncProvider(AbstractProvider):
             str: The created result as a string.
         """
         raise NotImplementedError()
-
 
 class AsyncGeneratorProvider(AsyncProvider):
     """
@@ -187,9 +201,9 @@ class AsyncGeneratorProvider(AsyncProvider):
         Returns:
             CreateResult: The result of the streaming completion creation.
         """
-        loop = get_running_loop()
+        loop = get_running_loop(check_nested=True)
         new_loop = False
-        if not loop:
+        if loop is None:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             new_loop = True
@@ -197,16 +211,11 @@ class AsyncGeneratorProvider(AsyncProvider):
         generator = cls.create_async_generator(model, messages, stream=stream, **kwargs)
         gen = generator.__aiter__()
 
-        # Fix for RuntimeError: async generator ignored GeneratorExit
-        async def await_callback(callback):
-            return await callback()
-
         try:
             while True:
                 yield loop.run_until_complete(await_callback(gen.__anext__))
         except StopAsyncIteration:
             ...
-        # Fix for: ResourceWarning: unclosed event loop
         finally:
             if new_loop:
                 loop.close()
@@ -233,7 +242,7 @@ class AsyncGeneratorProvider(AsyncProvider):
         """
         return "".join([
             chunk async for chunk in cls.create_async_generator(model, messages, stream=False, **kwargs) 
-            if not isinstance(chunk, Exception)
+            if not isinstance(chunk, (Exception, FinishReason))
         ])
 
     @staticmethod
@@ -260,16 +269,18 @@ class AsyncGeneratorProvider(AsyncProvider):
             AsyncResult: An asynchronous generator yielding results.
         """
         raise NotImplementedError()
-    
+
 class ProviderModelMixin:
     default_model: str
     models: list[str] = []
     model_aliases: dict[str, str] = {}
-    
+
     @classmethod
     def get_models(cls) -> list[str]:
+        if not cls.models:
+            return [cls.default_model]
         return cls.models
-    
+
     @classmethod
     def get_model(cls, model: str) -> str:
         if not model and cls.default_model is not None:

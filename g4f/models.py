@@ -3,26 +3,24 @@ from __future__  import annotations
 from dataclasses import dataclass
 
 from .Provider import RetryProvider, ProviderType
-from .Provider   import (
+from .Provider import (
     Chatgpt4Online,
     PerplexityLabs,
     GeminiProChat,
     ChatgptNext,
     HuggingChat,
     HuggingFace,
-    ChatgptDemo,
-    GptForLove,
+    OpenaiChat,
     ChatgptAi,
     DeepInfra,
-    ChatBase,
     GigaChat,
     Liaobots,
     FreeGpt,
     Llama2,
     Vercel,
     Gemini,
-    GptGo,
-    Gpt6,
+    Koala,
+    Cohere,
     Bing,
     You,
     Pi,
@@ -41,7 +39,7 @@ class Model:
     name: str
     base_provider: str
     best_provider: ProviderType = None
-    
+
     @staticmethod
     def __all__() -> list[str]:
         """Returns a list of all model names."""
@@ -52,9 +50,10 @@ default = Model(
     base_provider = "",
     best_provider = RetryProvider([
         Bing,
-        ChatgptAi, GptGo,
+        ChatgptAi,
         You,
-        Chatgpt4Online
+        Chatgpt4Online,
+        OpenaiChat
     ])
 )
 
@@ -63,11 +62,10 @@ gpt_35_long = Model(
     name          = 'gpt-3.5-turbo',
     base_provider = 'openai',
     best_provider = RetryProvider([
-        FreeGpt, You,
-        Chatgpt4Online,
+        FreeGpt,
+        You,
         ChatgptNext,
-        ChatgptDemo,
-        Gpt6,
+        OpenaiChat,
     ])
 )
 
@@ -75,10 +73,12 @@ gpt_35_long = Model(
 gpt_35_turbo = Model(
     name          = 'gpt-3.5-turbo',
     base_provider = 'openai',
-    best_provider = RetryProvider([ 
-        GptGo, You,
-        GptForLove, ChatBase,
-        Chatgpt4Online,
+    best_provider = RetryProvider([
+        FreeGpt,
+        You,
+        ChatgptNext,
+        Koala,
+        OpenaiChat,
     ])
 )
 
@@ -135,7 +135,7 @@ llama2_70b = Model(
 codellama_34b_instruct = Model(
     name          = "codellama/CodeLlama-34b-Instruct-hf",
     base_provider = "meta",
-    best_provider = RetryProvider([HuggingChat, DeepInfra])
+    best_provider = HuggingChat
 )
 
 codellama_70b_instruct = Model(
@@ -154,7 +154,19 @@ mixtral_8x7b = Model(
 mistral_7b = Model(
     name          = "mistralai/Mistral-7B-Instruct-v0.1",
     base_provider = "huggingface",
-    best_provider = RetryProvider([DeepInfra, HuggingChat, HuggingFace, PerplexityLabs])
+    best_provider = RetryProvider([HuggingChat, HuggingFace, PerplexityLabs])
+)
+
+mistral_7b_v02 = Model(
+    name          = "mistralai/Mistral-7B-Instruct-v0.2",
+    base_provider = "huggingface",
+    best_provider = DeepInfra
+)
+
+mixtral_8x22b = Model(
+    name          = "HuggingFaceH4/zephyr-orpo-141b-A35b-v0.1",
+    base_provider = "huggingface",
+    best_provider = RetryProvider([HuggingChat, DeepInfra])
 )
 
 # Misc models
@@ -172,12 +184,6 @@ lzlv_70b = Model(
 
 airoboros_70b = Model(
     name          = "deepinfra/airoboros-70b",
-    base_provider = "huggingface",
-    best_provider = DeepInfra
-)
-
-airoboros_l2_70b = Model(
-    name          = "jondurbin/airoboros-l2-70b-gpt4-1.4.1",
     base_provider = "huggingface",
     best_provider = DeepInfra
 )
@@ -261,6 +267,18 @@ pi = Model(
     best_provider = Pi
 )
 
+dbrx_instruct = Model(
+    name = 'databricks/dbrx-instruct',
+    base_provider = 'mistral',
+    best_provider = RetryProvider([DeepInfra, PerplexityLabs])
+)
+
+command_r_plus = Model(
+    name = 'CohereForAI/c4ai-command-r-plus',
+    base_provider = 'mistral',
+    best_provider = RetryProvider([HuggingChat, Cohere])
+)
+
 class ModelUtils:
     """
     Utility class for mapping string identifiers to Model instances.
@@ -295,19 +313,29 @@ class ModelUtils:
         'gigachat'     : gigachat,
         'gigachat_plus': gigachat_plus,
         'gigachat_pro' : gigachat_pro,
-
+        
+        # Mistral Opensource
         'mixtral-8x7b': mixtral_8x7b,
         'mistral-7b': mistral_7b,
+        'mistral-7b-v02': mistral_7b_v02,
+        'mixtral-8x22b': mixtral_8x22b,
         'dolphin-mixtral-8x7b': dolphin_mixtral_8x7b,
-        'lzlv-70b': lzlv_70b,
-        'airoboros-70b': airoboros_70b,
-        'airoboros-l2-70b': airoboros_l2_70b,
-        'openchat_3.5': openchat_35,
+        
+        # google gemini
         'gemini': gemini,
         'gemini-pro': gemini_pro,
+        
+        # anthropic
         'claude-v2': claude_v2,
         'claude-3-opus': claude_3_opus,
         'claude-3-sonnet': claude_3_sonnet,
+        
+        # other
+        'command-r+': command_r_plus,
+        'dbrx-instruct': dbrx_instruct,
+        'lzlv-70b': lzlv_70b,
+        'airoboros-70b': airoboros_70b,
+        'openchat_3.5': openchat_35,
         'pi': pi
     }
 

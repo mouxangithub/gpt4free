@@ -15,21 +15,34 @@ class StreamResponse(ClientResponse):
         async for chunk in self.content.iter_any():
             yield chunk
 
-    async def json(self) -> Any:
-        return await super().json(content_type=None)
+    async def json(self, content_type: str = None) -> Any:
+        return await super().json(content_type=content_type)
 
 class StreamSession(ClientSession):
-    def __init__(self, headers: dict = {}, timeout: int = None, proxies: dict = {}, impersonate = None, **kwargs):
+    def __init__(
+        self,
+        headers: dict = {},
+        timeout: int = None,
+        connector: BaseConnector = None,
+        proxies: dict = {},
+        impersonate = None,
+        **kwargs
+    ):
         if impersonate:
             headers = {
                 **DEFAULT_HEADERS,
                 **headers
             }
+        connect = None
+        if isinstance(timeout, tuple):
+            connect, timeout = timeout;
+        if timeout is not None:
+            timeout = ClientTimeout(timeout, connect)
         super().__init__(
             **kwargs,
-            timeout=ClientTimeout(timeout) if timeout else None,
+            timeout=timeout,
             response_class=StreamResponse,
-            connector=get_connector(kwargs.get("connector"), proxies.get("https")),
+            connector=get_connector(connector, proxies.get("all", proxies.get("https"))),
             headers=headers
         )
 

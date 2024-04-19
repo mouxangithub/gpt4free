@@ -12,8 +12,8 @@ def run_gui(host: str = '0.0.0.0', port: int = 8080, debug: bool = False) -> Non
     except ImportError:
         raise MissingRequirementsError('Install "flask" package for the gui')
     if debug:
-        import g4f
-        g4f.debug.logging = True
+        from g4f import debug
+        debug.logging = True
     config = {
         'host': host,
         'port': port,
